@@ -1,8 +1,37 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Checkbox, Form, Input, Layout, Space } from "antd";
 import Logo from "../../components/icons/Logo";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Credentials } from "../../types";
+import { login, self } from "../../http/api";
 
 const LoginPage = () => {
+
+  const loginUser = async (credentials: Credentials)=>{
+    const {data} = await login(credentials);
+    console.log(data);
+  }
+
+  const getSelf = async () =>{
+      const {data} = await self();
+      return data
+  }
+
+  const {data:selfData, refetch} = useQuery({
+    queryKey: ["self"],
+    queryFn: getSelf,
+    enabled: false
+  });
+
+  const {mutate,isPending} = useMutation({
+    mutationKey: ["login"],
+    mutationFn: loginUser,
+    onSuccess: ()=>{
+      refetch();
+      console.log("User data: ",selfData);
+    }
+  })
+
   return (
     <>
       <Layout
@@ -35,6 +64,12 @@ const LoginPage = () => {
             <Form
               initialValues={{ remember: true }}
               layout="vertical"
+              onFinish={(values)=>{
+                mutate({
+                  email: values.email,
+                  password: values.password
+                })
+              }}
               style={{ width: "100%" }}
             >
               <Form.Item
@@ -92,6 +127,7 @@ const LoginPage = () => {
                   style={{ width: "100%" }}
                   type="primary"
                   htmlType="submit"
+                  loading={isPending}
                 >
                   Log in
                 </Button>
