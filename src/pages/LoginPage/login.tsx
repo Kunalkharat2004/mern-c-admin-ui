@@ -4,33 +4,34 @@ import Logo from "../../components/icons/Logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Credentials } from "../../types";
 import { login, self } from "../../http/api";
+import { useAuthStore } from "../../store";
 
 const LoginPage = () => {
+  const { setUser } = useAuthStore();
+  const loginUser = async (credentials: Credentials) => {
+    const { data } = await login(credentials);
+    return data;
+  };
 
-  const loginUser = async (credentials: Credentials)=>{
-    const {data} = await login(credentials);
-    console.log(data);
-  }
+  const getSelf = async () => {
+    const { data } = await self();
+    return data;
+  };
 
-  const getSelf = async () =>{
-      const {data} = await self();
-      return data
-  }
-
-  const {data:selfData, refetch} = useQuery({
+  const { refetch } = useQuery({
     queryKey: ["self"],
     queryFn: getSelf,
-    enabled: false
+    enabled: false,
   });
 
-  const {mutate,isPending} = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationKey: ["login"],
     mutationFn: loginUser,
-    onSuccess: ()=>{
-      refetch();
-      console.log("User data: ",selfData);
-    }
-  })
+    onSuccess: async () => {
+      const { data: userData } = await refetch();
+      setUser(userData);
+    },
+  });
 
   return (
     <>
@@ -64,11 +65,11 @@ const LoginPage = () => {
             <Form
               initialValues={{ remember: true }}
               layout="vertical"
-              onFinish={(values)=>{
+              onFinish={(values) => {
                 mutate({
                   email: values.email,
-                  password: values.password
-                })
+                  password: values.password,
+                });
               }}
               style={{ width: "100%" }}
             >
