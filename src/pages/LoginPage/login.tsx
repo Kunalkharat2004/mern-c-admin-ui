@@ -3,11 +3,14 @@ import { Button, Card, Checkbox, Form, Input, Layout, Space } from "antd";
 import Logo from "../../components/icons/Logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Credentials } from "../../types";
-import { login, self } from "../../http/api";
+import { login, logout, self } from "../../http/api";
 import { useAuthStore } from "../../store";
+import { usePermission } from "../../hooks/usePermission";
 
 const LoginPage = () => {
-  const { setUser } = useAuthStore();
+
+  const {isAllowed} = usePermission();
+  const { setUser,logout:logoutFromStore } = useAuthStore();
   const loginUser = async (credentials: Credentials) => {
     const { data } = await login(credentials);
     return data;
@@ -29,6 +32,11 @@ const LoginPage = () => {
     mutationFn: loginUser,
     onSuccess: async () => {
       const { data: userData } = await refetch();
+      if(!isAllowed(userData)){
+        logout();
+        logoutFromStore();
+        return;
+      }
       setUser(userData);
     },
   });
