@@ -32,11 +32,10 @@ import Loader from "../components/icons/Loader";
 const { Header, Sider, Content } = Layout;
 
 const DashboardLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
 
-    const [collapsed, setCollapsed] = useState(false);
-    
-    const { logout:logoutFromStore } = useAuthStore();
-  const { mutate:logoutMutate,isPending } = useMutation({
+  const { logout: logoutFromStore } = useAuthStore();
+  const { mutate: logoutMutate, isPending } = useMutation({
     mutationKey: ["logout"],
     mutationFn: logout,
     onSuccess: async () => {
@@ -44,7 +43,7 @@ const DashboardLayout = () => {
       return;
     },
   });
- 
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -54,12 +53,12 @@ const DashboardLayout = () => {
     return <Navigate to="/auth/login" />;
   }
 
-  if(isPending){
-    return <Loader/>
+  if (isPending) {
+    return <Loader />;
   }
   return (
     <>
-      <Layout 
+      <Layout
         style={{
           minHeight: "100vh",
         }}
@@ -136,7 +135,11 @@ const DashboardLayout = () => {
                     height: 64,
                   }}
                 />
-                <Badge status="success" text="Global" />
+                <Badge 
+                status="success"
+                 text={
+                  user.role === "admin"? "Admin": user.tenant.name
+                } />
               </Space>
               <Space>
                 <Flex gap="middle" align="start" vertical>
@@ -154,7 +157,7 @@ const DashboardLayout = () => {
                             key: "/logout",
                             label: "Logout",
                             icon: <LogoutOutlined />,
-                            onClick: ()=> logoutMutate()
+                            onClick: () => logoutMutate(),
                           },
                         ],
                       }}
