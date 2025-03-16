@@ -4,6 +4,7 @@ import { self } from "../http/api";
 import { useEffect } from "react";
 import { useAuthStore } from "../store";
 import Loader from "../components/icons/Loader";
+import { AxiosError } from "axios";
 
 const getSelf = async()=>{
     const {data} = await self();
@@ -16,11 +17,15 @@ const Root = () => {
     const {data,isPending} = useQuery({
         queryKey: ["self"],
         queryFn: getSelf,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry:(failureCount, error)=>{
+            if(error instanceof AxiosError && error.response?.status === 401){
+                return false;
+            }
+            return failureCount < 3;
+        }
     })
 
     useEffect(()=>{
-        console.log(data);        
         if(data){
             setUser(data);
         }
