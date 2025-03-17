@@ -1,6 +1,6 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Checkbox, Form, Input, Layout, Space } from "antd";
-import Logo from "../../components/icons/Logo";
+import Logo from "../../assets/Icons/common/Logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Credentials } from "../../types";
 import { login, logout, self } from "../../http/api";
@@ -8,9 +8,8 @@ import { useAuthStore } from "../../store";
 import { usePermission } from "../../hooks/usePermission";
 
 const LoginPage = () => {
-
-  const {isAllowed} = usePermission();
-  const { setUser,logout:logoutFromStore } = useAuthStore();
+  const { isAllowed } = usePermission();
+  const { setUser, logout: logoutFromStore } = useAuthStore();
   const loginUser = async (credentials: Credentials) => {
     const { data } = await login(credentials);
     return data;
@@ -32,7 +31,7 @@ const LoginPage = () => {
     mutationFn: loginUser,
     onSuccess: async () => {
       const { data: userData } = await refetch();
-      if(!isAllowed(userData)){
+      if (!isAllowed(userData)) {
         logout();
         logoutFromStore();
         return;

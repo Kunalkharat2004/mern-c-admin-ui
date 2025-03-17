@@ -13,22 +13,22 @@ import {
 } from "antd";
 import Icon, {
   BellFilled,
-  HomeFilled,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
-import MenuIcon from "../components/icons/MenuIcon";
-import SalesIcon from "../components/icons/SalesIcon";
-import PromosIcon from "../components/icons/PromosIcon";
-import OrdersIcon from "../components/icons/OrdersIcon";
-import Logo from "../components/icons/Logo";
-import CollapaseLogo from "../components/icons/CollapaseLogo";
+import MenuIcon from "../assets/Icons/Sidebar/MenuIcon";
+import SalesIcon from "../assets/Icons/Sidebar/SalesIcon";
+import PromosIcon from "../assets/Icons/Sidebar/PromosIcon";
+import OrdersIcon from "../assets/Icons/Sidebar/OrdersIcon";
+import Logo from "../assets/Icons/common/Logo";
+import CollapaseLogo from "../assets/Icons/Sidebar/CollapaseLogo";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../http/api";
-import Loader from "../components/icons/Loader";
+import Loader from "../assets/Icons/common/Loader";
+import UsersIcon from "../assets/Icons/Sidebar/UsersIcon";
+import HomeIcon from "../pages/HomePage/Icons/HomeIcon";
 const { Header, Sider, Content } = Layout;
 
 const DashboardLayout = () => {
@@ -48,6 +48,26 @@ const DashboardLayout = () => {
     token: { colorBgContainer },
   } = theme.useToken();
 
+  const siderStyle: React.CSSProperties = {
+    overflow: "auto",
+    height: "100vh",
+    position: "sticky",
+    insetInlineStart: 0,
+    top: 0,
+    bottom: 0,
+    scrollbarWidth: "thin",
+    scrollbarGutter: "stable",
+  };
+
+  const headerStyle: React.CSSProperties = {
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
+    width: "100%",
+    padding: "0",
+    background: colorBgContainer,
+  };
+
   const { user } = useAuthStore();
   if (user === null) {
     return <Navigate to="/auth/login" />;
@@ -63,7 +83,13 @@ const DashboardLayout = () => {
           minHeight: "100vh",
         }}
       >
-        <Sider theme="light" trigger={null} collapsible collapsed={collapsed}>
+        <Sider
+          style={siderStyle}
+          theme="light"
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+        >
           <div
             style={{
               height: 64,
@@ -84,12 +110,12 @@ const DashboardLayout = () => {
             items={[
               {
                 key: "/",
-                icon: <HomeFilled />,
+                icon: <Icon component={HomeIcon} />,
                 label: <NavLink to="/">Home</NavLink>,
               },
               {
                 key: "/users",
-                icon: <UserOutlined />,
+                icon: <Icon component={UsersIcon} />,
                 label: <NavLink to="/users">Users</NavLink>,
               },
               {
@@ -116,7 +142,7 @@ const DashboardLayout = () => {
           />
         </Sider>
         <Layout>
-          <Header style={{ padding: 0, background: colorBgContainer }}>
+          <Header style={headerStyle}>
             <Flex
               gap={10}
               justify="space-between"
@@ -135,11 +161,10 @@ const DashboardLayout = () => {
                     height: 64,
                   }}
                 />
-                <Badge 
-                status="success"
-                 text={
-                  user.role === "admin"? "Admin": user.tenant.name
-                } />
+                <Badge
+                  status="success"
+                  text={user.role === "admin" ? "Admin" : user.tenant.name}
+                />
               </Space>
               <Space>
                 <Flex gap="middle" align="start" vertical>
@@ -183,7 +208,6 @@ const DashboardLayout = () => {
               margin: "16px",
               padding: 24,
               minHeight: 280,
-              background: colorBgContainer,
             }}
           >
             <Outlet />
