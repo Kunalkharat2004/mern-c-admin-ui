@@ -73,9 +73,46 @@ const DashboardLayout = () => {
     return <Navigate to="/auth/login" />;
   }
 
+  const items = [
+    {
+      key: "/",
+      icon: <Icon component={HomeIcon} />,
+      label: <NavLink to="/">Home</NavLink>,
+    },
+
+    {
+      key: "/restaurants",
+      icon: <Icon component={MenuIcon} />,
+      label: <NavLink to="/restaurants">Restaurants</NavLink>,
+    },
+    {
+      key: "/orders",
+      icon: <Icon component={OrdersIcon} />,
+      label: <NavLink to="/orders">Orders</NavLink>,
+    },
+    {
+      key: "/sales",
+      icon: <Icon component={SalesIcon} />,
+      label: <NavLink to="/sales">Sales</NavLink>,
+    },
+    {
+      key: "/promos",
+      icon: <Icon component={PromosIcon} />,
+      label: <NavLink to="/promos">Promos</NavLink>,
+    },
+  ]
+  if(user.role === "admin"){
+    items.splice(1,0,{
+      key: "/users",
+      icon: <Icon component={UsersIcon} />,
+      label: <NavLink to="/users">Users</NavLink>,
+    })
+  }
+
   if (isPending) {
     return <Loader />;
   }
+
   return (
     <>
       <Layout
@@ -107,38 +144,7 @@ const DashboardLayout = () => {
               background: colorBgContainer,
               paddingTop: "16px",
             }}
-            items={[
-              {
-                key: "/",
-                icon: <Icon component={HomeIcon} />,
-                label: <NavLink to="/">Home</NavLink>,
-              },
-              {
-                key: "/users",
-                icon: <Icon component={UsersIcon} />,
-                label: <NavLink to="/users">Users</NavLink>,
-              },
-              {
-                key: "/menu",
-                icon: <Icon component={MenuIcon} />,
-                label: <NavLink to="/menu">Menu</NavLink>,
-              },
-              {
-                key: "/orders",
-                icon: <Icon component={OrdersIcon} />,
-                label: <NavLink to="/orders">Orders</NavLink>,
-              },
-              {
-                key: "/sales",
-                icon: <Icon component={SalesIcon} />,
-                label: <NavLink to="/sales">Sales</NavLink>,
-              },
-              {
-                key: "/promos",
-                icon: <Icon component={PromosIcon} />,
-                label: <NavLink to="/promos">Promos</NavLink>,
-              },
-            ]}
+            items={items}
           />
         </Sider>
         <Layout>

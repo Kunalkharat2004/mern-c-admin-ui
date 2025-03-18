@@ -148,6 +148,7 @@ const HomePage = () => {
                         customerAddress={order.customerAddress}
                         orderAmount={order.orderAmount}
                         status={order.status}
+                        key={order.key}
                       />
                     ))}
                   </Flex>

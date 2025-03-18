@@ -4,6 +4,8 @@ import LoginPage from "./pages/LoginPage/login";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import Root from "./layouts/Root";
+import UsersPage from "./pages/UsersPage/UsersPage";
+import RestaurantsPage from "./pages/RestaurantsPage/RestaurantsPage";
 
 const router = createBrowserRouter([
   {
@@ -18,9 +20,16 @@ const router = createBrowserRouter([
             path: "",
             element: <HomePage />,
           },
+          {
+            path: "users",
+            element: <UsersPage />,
+          },
+          {
+            path: "restaurants",
+            element: <RestaurantsPage />,
+          },
         ],
       },
-
       {
         path: "auth",
         element: <AuthLayout />,

@@ -7,6 +7,7 @@ import router from "./router";
 import { ConfigProvider } from "antd";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { NotificationProvider } from "./context/NotificationContext";
 
 
 const queryClient = new QueryClient();
@@ -23,7 +24,9 @@ createRoot(document.getElementById("root")!).render(
         }}
       >
         <ReactQueryDevtools initialIsOpen={true} />
+        <NotificationProvider>
         <RouterProvider router={router} />
+        </NotificationProvider>
       </ConfigProvider>
     </QueryClientProvider>
   </StrictMode>
