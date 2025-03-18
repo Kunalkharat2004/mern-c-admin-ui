@@ -1,10 +1,12 @@
-import { ExclamationCircleOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import { Breadcrumb, Button, Drawer, Modal, Result, Space, Table } from "antd";
+import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Breadcrumb, Button, Drawer, Form, Result, Space, Table } from "antd";
 import { NavLink } from "react-router-dom";
-import { getAllUsers } from "../../http/api";
+import { createUser, getAllUsers } from "../../http/api";
 import UsersFilter from "./UsersFilter";
 import { useState } from "react";
+import UserForm from "./UserForm";
+import { User } from "../../types";
 import { useNotification } from "../../context/NotificationContext";
 
 const BreadcrumbItems = [
@@ -40,28 +42,46 @@ const columns = [
 
 const UsersPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const notification = useNotification();
-
-  const handleModalOk = () => {
-    setIsModalOpen(false);
-    setDrawerOpen(false);
-    notification.success("User creation cancelled");
-  };
-
-  const handleModalCancel = () => {
-    setIsModalOpen(false);
-  };
 
   const getUsers = async () => {
     const { data } = await getAllUsers();
     return data;
   };
+const notification = useNotification();
+
+  const addUser = async (userData:User) =>{
+    await createUser(userData);
+  }
 
   const { data: users, isPending, isError, refetch } = useQuery({
     queryKey: ["users"],
     queryFn: getUsers,
   });
+
+  const {mutate,isPending: createUserMutationPending} = useMutation({
+    mutationKey:["createUser"],
+    mutationFn: addUser,
+    onSuccess: ()=>{
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.success("User created successfully");
+      refetch();
+    },
+
+    onError: ()=>{
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.error("Something went wrong");
+    }
+  })
+
+  const [form] = Form.useForm();
+
+  const handleOnSubmit = async ()=>{
+    await form.validateFields();
+    console.log(form.getFieldsValue());
+    mutate(form.getFieldsValue() as User);
+  }
 
   if(isError){
     return (
@@ -102,6 +122,7 @@ const UsersPage = () => {
         <Drawer
           title="Create a new user"
           width={720}
+          loading={createUserMutationPending}
           onClose={() => {
             console.log("Drawer Closed");
             setDrawerOpen(false);
@@ -110,34 +131,32 @@ const UsersPage = () => {
           open={drawerOpen}
           extra={
             <Space>
-              <Button onClick={() => setIsModalOpen(true)}>Cancel</Button>
-              <Modal
-               title={
-                <span>
-                  <ExclamationCircleOutlined style={{ marginRight: 8, color: "#faad14" }} />
-                  Are you sure you want to cancel?
-                </span>
-              }
-                destroyOnClose={true}
-                open={isModalOpen}
-                onOk={handleModalOk}
-                onCancel={handleModalCancel}
-                okText="Yes"
-                cancelText="No"
-              /> 
-              <Button onClick={() => {}} type="primary">
+              <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
+              <Button onClick={handleOnSubmit} type="primary">
                 Submit
               </Button>
             </Space>
           }
-        ></Drawer>
+        >
+          <Form
+          layout="vertical"
+          onFinish={(values) => {
+            console.log(values);
+          }}
+          form={form}
+          >
+        <UserForm />
+
+          </Form>
+
+        </Drawer>
 
         <Table 
         rowKey={"id"}
          columns={columns}
           dataSource={users}
           loading={isPending}
-          />;
+          />
 
       </Space>
     </>

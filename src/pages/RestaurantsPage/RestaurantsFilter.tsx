@@ -16,6 +16,7 @@ const RestaurantsFilter = ({ onFilterChange, children }: RestautantsFilterProps)
             size="middle"
             >
                 <Input.Search
+                style={{width:300}}
                 onChange={(e)=>onFilterChange("Input Search",e.target.value)}
                 placeholder="Search Restaurants" allowClear/>
             </Space>
