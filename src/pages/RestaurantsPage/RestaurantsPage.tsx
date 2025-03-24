@@ -1,11 +1,14 @@
 import { ExclamationCircleOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import { Breadcrumb, Button, Drawer, Modal, Result, Space, Table } from "antd";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Breadcrumb, Button, Drawer, Form, Modal, Result, Space, Table } from "antd";
 import { NavLink } from "react-router-dom";
-import { getAllTenants } from "../../http/api";
+import { createRestaurant, getAllTenants } from "../../http/api";
 import { useState } from "react";
 import { useNotification } from "../../context/NotificationContext";
 import RestaurantsFilter from "./RestaurantsFilter";
+import { useForm } from "antd/es/form/Form";
+import RestaurantForm from "./RestaurantForm";
+import { Restaurant } from "../../types";
 
 const BreadcrumbItems = [
   {
@@ -50,6 +53,35 @@ const RestaurantsPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const notification = useNotification();
+  const [form] = useForm();
+
+  const addRestaurant = async(restaurantData: Restaurant) =>{
+    await createRestaurant(restaurantData);
+  }
+
+  
+  const {mutate,isPending: createRestaurantMutationPending} = useMutation({
+    mutationKey:["createRestaurant"],
+    mutationFn: addRestaurant,
+    onSuccess: ()=>{
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.success("Restaurant created successfully");
+      refetch();
+    },
+
+    onError: ()=>{
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.error("Something went wrong");
+    }
+  })
+
+   const handleOnSubmit = async ()=>{
+      await form.validateFields();
+      console.log(form.getFieldsValue());
+      mutate(form.getFieldsValue() as Restaurant);
+    }
 
   const handleModalOk = () => {
     setIsModalOpen(false);
@@ -109,6 +141,7 @@ const RestaurantsPage = () => {
         <Drawer
           title="Create a new restaurant"
           width={720}
+          loading={createRestaurantMutationPending}
           onClose={() => {
             console.log("Drawer Closed");
             setDrawerOpen(false);
@@ -132,12 +165,25 @@ const RestaurantsPage = () => {
                 okText="Yes"
                 cancelText="No"
               /> 
-              <Button onClick={() => {}} type="primary">
+              <Button onClick={handleOnSubmit} type="primary">
                 Submit
               </Button>
             </Space>
           }
-        ></Drawer>
+        >
+            <Form
+          layout="vertical"
+          style={{width:"100%"}}
+          onFinish={(values) => {
+            console.log(values);
+          }}
+          form={form}
+          >
+        <RestaurantForm />
+
+          </Form>
+
+        </Drawer>
 
         <Table 
         rowKey={"id"}

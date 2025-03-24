@@ -24,7 +24,12 @@ const columns = [
     title: "Name",
     dataIndex: "firstName",
     render: (text: string, record: { firstName: string; lastName: string }) =>
-      `${record.firstName} ${record.lastName}`,
+    {
+      return `${record.firstName} ${record.lastName}`
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+    }
   },
   {
     title: "Email",
@@ -42,9 +47,14 @@ const columns = [
 
 const UsersPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [queryParams, setQueryParams] = useState({
+    currentPage: 1,
+    perPage:5
+  })
 
   const getUsers = async () => {
-    const { data } = await getAllUsers();
+    const queryParamasString = new URLSearchParams(queryParams as unknown as Record<string,string>).toString();
+    const { data } = await getAllUsers(queryParamasString);
     return data;
   };
 const notification = useNotification();
@@ -54,8 +64,9 @@ const notification = useNotification();
   }
 
   const { data: users, isPending, isError, refetch } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users",queryParams],
     queryFn: getUsers,
+
   });
 
   const {mutate,isPending: createUserMutationPending} = useMutation({
@@ -154,8 +165,21 @@ const notification = useNotification();
         <Table 
         rowKey={"id"}
          columns={columns}
-          dataSource={users}
+          dataSource={users?.data}
           loading={isPending}
+          pagination={{
+            current: queryParams.currentPage,
+            pageSize: queryParams.perPage,
+            total: users?.total,
+            onChange:(page)=>{
+              setQueryParams((prev)=>{
+                return {
+                  ...prev,
+                  currentPage:page,
+                }
+              })
+            }
+          }}
           />
 
       </Space>

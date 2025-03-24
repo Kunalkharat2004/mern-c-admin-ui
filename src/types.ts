@@ -18,3 +18,8 @@ export interface Tenant {
     name: string;
     address: string;
 }
+
+export interface Restaurant {
+    name: string;
+    address: string;
+}

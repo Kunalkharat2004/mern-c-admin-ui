@@ -8,8 +8,7 @@ interface RestautantsFilterProps {
 const RestaurantsFilter = ({ onFilterChange, children }: RestautantsFilterProps) => {
   return (
     <>
-          <Card
-    >
+          <Card>
         <Row justify="space-between">
         <Col span={16}>
             <Space
