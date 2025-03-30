@@ -1,4 +1,4 @@
-import { Card, Col, Input, Row, Space, Grid } from "antd";
+import { Card, Col, Input, Row, Space, Grid, Form } from "antd";
 
 const { useBreakpoint } = Grid;
 
@@ -18,18 +18,21 @@ const RestaurantsFilter = ({
       <Card>
         <Row justify="space-between" gutter={[16, 16]} wrap>
           <Col xs={24} sm={24} md={16} lg={16}>
-            <Space
+        
+          <Space
               size={screens.xs ? "small" : "middle"}
               wrap
               direction={screens.xs ? "vertical" : "horizontal"}
               style={{ width: "100%" }}
             >
-              <Input.Search
-                style={{ width: screens.xs ? "100%" : 300 }}
-                onChange={(e) => onFilterChange("Input Search", e.target.value)}
-                placeholder="Search Restaurants"
-                allowClear
-              />
+              <Form.Item name="q">
+                <Input.Search
+                  style={{ width: screens.xs ? "100%" : 300 }}
+                  onChange={(e) => onFilterChange("Input Search", e.target.value)}
+                  placeholder="Search Restaurants"
+                  allowClear
+                />
+              </Form.Item>
             </Space>
           </Col>
           <Col

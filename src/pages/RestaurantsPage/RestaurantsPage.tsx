@@ -3,7 +3,7 @@ import {
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Breadcrumb,
   Button,
@@ -17,12 +17,13 @@ import {
 } from "antd";
 import { NavLink } from "react-router-dom";
 import { createRestaurant, getAllTenants } from "../../http/api";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNotification } from "../../context/NotificationContext";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { useForm } from "antd/es/form/Form";
 import RestaurantForm from "./RestaurantForm";
-import { Restaurant } from "../../types";
+import { FieldData, Restaurant } from "../../types";
+import { debounce } from "lodash";
 
 const { useBreakpoint } = Grid;
 
@@ -76,8 +77,13 @@ const RestaurantsPage = () => {
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [queryParams, setQueryParams] = useState({
+    currentPage: 1,
+    perPage:5
+  });
   const notification = useNotification();
   const [form] = useForm();
+  const [formFilter] = Form.useForm();
 
   const addRestaurant = async (restaurantData: Restaurant) => {
     await createRestaurant(restaurantData);
@@ -117,7 +123,11 @@ const RestaurantsPage = () => {
   };
 
   const getTenants = async () => {
-    const { data } = await getAllTenants();
+    const filteredValues = Object.fromEntries(Object.entries(queryParams).filter((item)=> !!item[1]));
+    const queryParamsString = new URLSearchParams(
+      filteredValues as unknown as Record<string, string>
+    ).toString();
+    const { data } = await getAllTenants(queryParamsString);
     return data;
   };
 
@@ -127,9 +137,37 @@ const RestaurantsPage = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["tenants"],
+    queryKey: ["tenants",queryParams],
     queryFn: getTenants,
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  
+  const debounceQUpdate = useMemo(()=>{
+    return debounce((value:string | undefined)=>{
+      setQueryParams((prev)=>({
+        ...prev,
+        q:value
+      }))
+    },500)
+},[])
+
+  const handleFilterChange = (changedFields: FieldData[])=>{
+    const filter = changedFields.map((item)=>({
+      [item.name[0]]: item.value
+    }))
+    .reduce((acc,curr)=>({...acc, ...curr}),{})
+
+   if("q" in filter){
+    debounceQUpdate(filter.q);
+   }else{
+    setQueryParams((prev)=>({
+      ...prev,
+      ...filter
+    }))
+   }
+  }
 
   if (isError) {
     return (
@@ -161,7 +199,11 @@ const RestaurantsPage = () => {
             marginBottom: screens.xs ? "8px" : "16px",
           }}
         />
-        <RestaurantsFilter
+       <Form
+        form={formFilter}
+        onFieldsChange={handleFilterChange}
+       >
+       <RestaurantsFilter
           onFilterChange={(FilterName, FilterValue) =>
             console.log(FilterName, FilterValue)
           }
@@ -180,6 +222,7 @@ const RestaurantsPage = () => {
             Add Restaurant
           </Button>
         </RestaurantsFilter>
+       </Form>
 
         <Drawer
           title="Create a new restaurant"
@@ -240,7 +283,7 @@ const RestaurantsPage = () => {
           <Table
             rowKey={"id"}
             columns={getColumns(screens)}
-            dataSource={tenants}
+            dataSource={tenants?.data}
             loading={isPending}
             size={screens.xs ? "small" : ("middle" as const)}
             scroll={{
@@ -252,6 +295,17 @@ const RestaurantsPage = () => {
               whiteSpace: "nowrap",
             }}
             pagination={{
+              current: queryParams.currentPage,
+              pageSize: queryParams.perPage,
+              total: tenants?.total,
+              onChange:(page)=>{
+                setQueryParams((prev) => {
+                  return {
+                    ...prev,
+                    currentPage: page,
+                  };
+                });
+              },
               size: screens.xs ? "small" : ("default" as const),
               showSizeChanger: !screens.xs,
               showQuickJumper: !screens.xs,
