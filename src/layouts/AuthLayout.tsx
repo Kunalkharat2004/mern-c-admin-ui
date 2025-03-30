@@ -1,10 +1,12 @@
-import { Navigate, Outlet } from "react-router-dom"
+import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { useAuthStore } from "../store";
 
 const AuthLayout = () => {
     const {user} = useAuthStore();
+    const location = useLocation();
     if(user !== null){
-      return <Navigate to="/"/>
+      const redirect = new URLSearchParams(location.search).get("returnTo") ?? "/";
+      return <Navigate to={redirect}/>
     }
   return (
     <>
@@ -13,4 +15,4 @@ const AuthLayout = () => {
   )
 }
 
-export default AuthLayout
+export default AuthLayout;

@@ -1,4 +1,4 @@
-import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import {
   Avatar,
@@ -74,10 +74,11 @@ const DashboardLayout = () => {
     padding: "0",
     background: colorBgContainer,
   };
-
+  
+  const location = useLocation();
   const { user } = useAuthStore();
   if (user === null) {
-    return <Navigate to="/auth/login" />;
+    return <Navigate to={`/auth/login?returnTo=${location.pathname}`} />;
   }
 
   const items = [
@@ -217,7 +218,7 @@ const DashboardLayout = () => {
                 )}
                 <Badge
                   status="success"
-                  text={user.role === "admin" ? "Admin" : user.tenant.name}
+                  text={user.role === "admin" ? "Admin" : user.tenant?.name ?? ""}
                 />
               </Space>
               <Space>
