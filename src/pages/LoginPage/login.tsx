@@ -1,5 +1,5 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Card, Checkbox, Form, Input, Layout, Space } from "antd";
+import { Button, Card, Checkbox, Form, Input, Layout, Space, Grid } from "antd";
 import Logo from "../../assets/Icons/common/Logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Credentials } from "../../types";
@@ -7,7 +7,10 @@ import { login, logout, self } from "../../http/api";
 import { useAuthStore } from "../../store";
 import { usePermission } from "../../hooks/usePermission";
 
+const { useBreakpoint } = Grid;
+
 const LoginPage = () => {
+  const screens = useBreakpoint();
   const { isAllowed } = usePermission();
   const { setUser, logout: logoutFromStore } = useAuthStore();
   const loginUser = async (credentials: Credentials) => {
@@ -48,9 +51,13 @@ const LoginPage = () => {
         <Space
           direction="vertical"
           size="large"
-          style={{ width: "100%", alignItems: "center" }}
+          style={{
+            width: "100%",
+            alignItems: "center",
+            padding: screens.xs ? "0 16px" : 0,
+          }}
         >
-          <Layout.Content>
+          <Layout.Content style={{ textAlign: "center" }}>
             <Logo />
           </Layout.Content>
           <Card
@@ -58,7 +65,7 @@ const LoginPage = () => {
               <Space
                 style={{
                   width: "100%",
-                  fontSize: 20,
+                  fontSize: screens.xs ? 18 : 20,
                   justifyContent: "center",
                 }}
               >
@@ -67,7 +74,10 @@ const LoginPage = () => {
               </Space>
             }
             variant="borderless"
-            style={{ width: 400 }}
+            style={{
+              width: screens.xs ? "100%" : screens.sm ? 350 : 400,
+              maxWidth: "100%",
+            }}
           >
             <Form
               initialValues={{ remember: true }}
@@ -117,12 +127,19 @@ const LoginPage = () => {
 
               <Form.Item label={null}>
                 <Space
-                  style={{ width: "100%", justifyContent: "space-between" }}
+                  style={{
+                    width: "100%",
+                    justifyContent: screens.xs ? "center" : "space-between",
+                    flexDirection: screens.xs ? "column" : "row",
+                    alignItems: "center",
+                    gap: screens.xs ? "8px" : "0",
+                  }}
                 >
                   <Form.Item
                     name="remember"
                     valuePropName="checked"
                     label={null}
+                    style={{ margin: 0 }}
                   >
                     <Checkbox>Remember me</Checkbox>
                   </Form.Item>
@@ -136,6 +153,7 @@ const LoginPage = () => {
                   type="primary"
                   htmlType="submit"
                   loading={isPending}
+                  size={screens.xs ? "large" : "middle"}
                 >
                   Log in
                 </Button>

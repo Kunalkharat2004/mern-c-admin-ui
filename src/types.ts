@@ -10,7 +10,7 @@ export interface User {
     firstName: string;
     lastName: string;
     role: string;
-    tenant: Tenant
+    tenant: Tenant | null;
 };
 
 export interface Tenant {
@@ -22,4 +22,9 @@ export interface Tenant {
 export interface Restaurant {
     name: string;
     address: string;
+}
+
+export interface FieldData {
+    name: string[];
+    value?: string;
 }

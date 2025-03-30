@@ -1,9 +1,17 @@
-import { Card, Form, Input, Space } from "antd";
+import { Card, Form, Input, Space, Grid } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
+const { useBreakpoint } = Grid;
+
 const RestaurantForm = () => {
+  const screens = useBreakpoint();
+
   return (
-    <Space style={{width:"100%"}} direction="vertical" size="large">
+    <Space
+      style={{ width: "100%" }}
+      direction="vertical"
+      size={screens.xs ? "middle" : "large"}
+    >
       <Card style={{ width: "100%" }} title="Basic Info">
         <Form.Item
           label="Restaurant Name"
@@ -15,7 +23,7 @@ const RestaurantForm = () => {
             },
           ]}
         >
-          <Input allowClear style={{ width: "80%" }} />
+          <Input allowClear style={{ width: screens.xs ? "100%" : "80%" }} />
         </Form.Item>
 
         <Form.Item
@@ -28,7 +36,11 @@ const RestaurantForm = () => {
             },
           ]}
         >
-            <TextArea rows={6} allowClear style={{ width: "80%" }} />
+          <TextArea
+            rows={screens.xs ? 4 : 6}
+            allowClear
+            style={{ width: screens.xs ? "100%" : "80%" }}
+          />
         </Form.Item>
       </Card>
     </Space>

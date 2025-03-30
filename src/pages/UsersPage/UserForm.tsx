@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, Col, Form, Input, Row, Select, Space } from "antd";
+import { Card, Col, Form, Input, Row, Select, Space, Grid } from "antd";
 import { getAllTenants } from "../../http/api";
 import { Tenant } from "../../types";
 import TextArea from "antd/es/input/TextArea";
 
+const { useBreakpoint } = Grid;
+
 const UserForm = () => {
+  const screens = useBreakpoint();
+
   const getTenants = async () => {
     const { data } = await getAllTenants();
     return data;
@@ -17,10 +21,14 @@ const UserForm = () => {
 
   return (
     <>
-      <Space direction="vertical" size="large">
+      <Space
+        direction="vertical"
+        size={screens.xs ? "middle" : "large"}
+        style={{ width: "100%" }}
+      >
         <Card title="Basic Info">
           <Row gutter={[20, 20]}>
-            <Col span={12}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="First Name"
                 name="firstName"
@@ -35,7 +43,7 @@ const UserForm = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="Last Name"
                 name="lastName"
@@ -50,7 +58,7 @@ const UserForm = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="Email"
                 name="email"
@@ -73,8 +81,8 @@ const UserForm = () => {
         </Card>
 
         <Card title="Security Info">
-          <Row gutter={20}>
-            <Col span={12}>
+          <Row gutter={[20, 20]}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="Password"
                 name="password"
@@ -100,7 +108,7 @@ const UserForm = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="Confirm Password"
                 name="confirmPassword"
@@ -141,8 +149,8 @@ const UserForm = () => {
         </Card>
 
         <Card title="Role Info">
-          <Row gutter={20}>
-            <Col span={12}>
+          <Row gutter={[20, 20]}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item
                 label="Role"
                 name="role"
@@ -161,7 +169,7 @@ const UserForm = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={24} md={12} lg={12}>
               <Form.Item noStyle dependencies={["role"]}>
                 {({ getFieldValue }) =>
                   getFieldValue("role") === "manager" ? (
@@ -191,7 +199,7 @@ const UserForm = () => {
         </Card>
 
         <Card title="Address Info">
-          <Row gutter={20}>
+          <Row gutter={[20, 20]}>
             <Col span={24}>
               <Form.Item
                 label="Address"
@@ -203,7 +211,7 @@ const UserForm = () => {
                   },
                 ]}
               >
-                <TextArea rows={4} allowClear />
+                <TextArea rows={screens.xs ? 3 : 4} allowClear />
               </Form.Item>
             </Col>
           </Row>

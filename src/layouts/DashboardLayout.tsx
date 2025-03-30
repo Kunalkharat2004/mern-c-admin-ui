@@ -10,6 +10,8 @@ import {
   Menu,
   Space,
   theme,
+  Grid,
+  Drawer,
 } from "antd";
 import Icon, {
   BellFilled,
@@ -29,10 +31,14 @@ import { logout } from "../http/api";
 import Loader from "../assets/Icons/common/Loader";
 import UsersIcon from "../assets/Icons/Sidebar/UsersIcon";
 import HomeIcon from "../pages/HomePage/Icons/HomeIcon";
+
 const { Header, Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 const DashboardLayout = () => {
+  const screens = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { logout: logoutFromStore } = useAuthStore();
   const { mutate: logoutMutate, isPending } = useMutation({
@@ -57,6 +63,7 @@ const DashboardLayout = () => {
     bottom: 0,
     scrollbarWidth: "thin",
     scrollbarGutter: "stable",
+    display: screens.xs ? "none" : "block",
   };
 
   const headerStyle: React.CSSProperties = {
@@ -77,41 +84,78 @@ const DashboardLayout = () => {
     {
       key: "/",
       icon: <Icon component={HomeIcon} />,
-      label: <NavLink to="/">Home</NavLink>,
+      label: (
+        <NavLink to="/" onClick={() => setMobileMenuOpen(false)}>
+          Home
+        </NavLink>
+      ),
     },
-
     {
       key: "/restaurants",
       icon: <Icon component={MenuIcon} />,
-      label: <NavLink to="/restaurants">Restaurants</NavLink>,
+      label: (
+        <NavLink to="/restaurants" onClick={() => setMobileMenuOpen(false)}>
+          Restaurants
+        </NavLink>
+      ),
     },
     {
       key: "/orders",
       icon: <Icon component={OrdersIcon} />,
-      label: <NavLink to="/orders">Orders</NavLink>,
+      label: (
+        <NavLink to="/orders" onClick={() => setMobileMenuOpen(false)}>
+          Orders
+        </NavLink>
+      ),
     },
     {
       key: "/sales",
       icon: <Icon component={SalesIcon} />,
-      label: <NavLink to="/sales">Sales</NavLink>,
+      label: (
+        <NavLink to="/sales" onClick={() => setMobileMenuOpen(false)}>
+          Sales
+        </NavLink>
+      ),
     },
     {
       key: "/promos",
       icon: <Icon component={PromosIcon} />,
-      label: <NavLink to="/promos">Promos</NavLink>,
+      label: (
+        <NavLink to="/promos" onClick={() => setMobileMenuOpen(false)}>
+          Promos
+        </NavLink>
+      ),
     },
-  ]
-  if(user.role === "admin"){
-    items.splice(1,0,{
+  ];
+
+  if (user.role === "admin") {
+    items.splice(1, 0, {
       key: "/users",
       icon: <Icon component={UsersIcon} />,
-      label: <NavLink to="/users">Users</NavLink>,
-    })
+      label: (
+        <NavLink to="/users" onClick={() => setMobileMenuOpen(false)}>
+          Users
+        </NavLink>
+      ),
+    });
   }
 
   if (isPending) {
     return <Loader />;
   }
+
+  const renderMenu = () => (
+    <Menu
+      theme="light"
+      mode="inline"
+      defaultSelectedKeys={["/"]}
+      style={{
+        background: colorBgContainer,
+        paddingTop: "16px",
+      }}
+      items={items}
+    />
+  );
 
   return (
     <>
@@ -136,16 +180,7 @@ const DashboardLayout = () => {
           >
             {collapsed ? <CollapaseLogo /> : <Logo />}
           </div>
-          <Menu
-            theme="light"
-            mode="inline"
-            defaultSelectedKeys={["/"]}
-            style={{
-              background: colorBgContainer,
-              paddingTop: "16px",
-            }}
-            items={items}
-          />
+          {renderMenu()}
         </Sider>
         <Layout>
           <Header style={headerStyle}>
@@ -155,18 +190,31 @@ const DashboardLayout = () => {
               style={{ padding: "0 16px" }}
             >
               <Space>
-                <Button
-                  type="text"
-                  icon={
-                    collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
-                  }
-                  onClick={() => setCollapsed(!collapsed)}
-                  style={{
-                    fontSize: "16px",
-                    width: 64,
-                    height: 64,
-                  }}
-                />
+                {screens.xs ? (
+                  <Button
+                    type="text"
+                    icon={<MenuFoldOutlined />}
+                    onClick={() => setMobileMenuOpen(true)}
+                    style={{
+                      fontSize: "16px",
+                      width: 64,
+                      height: 64,
+                    }}
+                  />
+                ) : (
+                  <Button
+                    type="text"
+                    icon={
+                      collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
+                    }
+                    onClick={() => setCollapsed(!collapsed)}
+                    style={{
+                      fontSize: "16px",
+                      width: 64,
+                      height: 64,
+                    }}
+                  />
+                )}
                 <Badge
                   status="success"
                   text={user.role === "admin" ? "Admin" : user.tenant.name}
@@ -211,8 +259,8 @@ const DashboardLayout = () => {
           </Header>
           <Content
             style={{
-              margin: "16px",
-              padding: 24,
+              margin: screens.xs ? "8px" : "16px",
+              padding: screens.xs ? "12px" : "24px",
               minHeight: 280,
             }}
           >
@@ -220,6 +268,27 @@ const DashboardLayout = () => {
           </Content>
         </Layout>
       </Layout>
+
+      {screens.xs && (
+        <Drawer
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          width={250}
+          bodyStyle={{ padding: 0 }}
+        >
+          <div
+            style={{
+              height: 64,
+              padding: "20px 30px",
+              background: colorBgContainer,
+            }}
+          >
+            <Logo />
+          </div>
+          {renderMenu()}
+        </Drawer>
+      )}
     </>
   );
 };
