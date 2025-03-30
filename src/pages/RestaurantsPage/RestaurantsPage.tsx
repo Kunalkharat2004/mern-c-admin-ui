@@ -148,7 +148,8 @@ const RestaurantsPage = () => {
     return debounce((value:string | undefined)=>{
       setQueryParams((prev)=>({
         ...prev,
-        q:value
+        q:value,
+        currentPage:1
       }))
     },500)
 },[])
@@ -164,7 +165,8 @@ const RestaurantsPage = () => {
    }else{
     setQueryParams((prev)=>({
       ...prev,
-      ...filter
+      ...filter,
+      currentPage:1
     }))
    }
   }
@@ -307,7 +309,7 @@ const RestaurantsPage = () => {
                 });
               },
               size: screens.xs ? "small" : ("default" as const),
-              showSizeChanger: !screens.xs,
+              showTotal: (total, range) => `Showing ${range[0]}-${range[1]} of ${total}`,
               showQuickJumper: !screens.xs,
               style: {
                 marginTop: screens.xs ? "8px" : "16px",
