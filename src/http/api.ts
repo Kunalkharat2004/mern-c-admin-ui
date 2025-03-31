@@ -8,3 +8,4 @@ export const getAllUsers = (queryParamasString: string)=> api.get(`/users?${quer
 export const getAllTenants = (queryParamsString: string)=> api.get(`/tenant?${queryParamsString}`);
 export const createUser = (userData: User)=> api.post("/users", userData);
 export const createRestaurant = (restaurantData: Restaurant)=> api.post("/tenant", restaurantData);
+export const updateUser = (userData: User,id:string)=> api.patch(`/users/${id}`, userData);

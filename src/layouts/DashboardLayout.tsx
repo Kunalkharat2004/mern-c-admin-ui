@@ -13,24 +13,26 @@ import {
   Grid,
   Drawer,
 } from "antd";
-import Icon, {
+import {
   BellFilled,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
-import MenuIcon from "../assets/Icons/Sidebar/MenuIcon";
-import SalesIcon from "../assets/Icons/Sidebar/SalesIcon";
-import PromosIcon from "../assets/Icons/Sidebar/PromosIcon";
-import OrdersIcon from "../assets/Icons/Sidebar/OrdersIcon";
-import Logo from "../assets/Icons/common/Logo";
-import CollapaseLogo from "../assets/Icons/Sidebar/CollapaseLogo";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../http/api";
 import Loader from "../assets/Icons/common/Loader";
-import UsersIcon from "../assets/Icons/Sidebar/UsersIcon";
-import HomeIcon from "../pages/HomePage/Icons/HomeIcon";
+import Logo from "../assets/Icons/common/Logo";
+import CollapaseLogo from "../assets/Icons/Sidebar/CollapaseLogo";
+import {
+  MdHome,
+  MdRestaurant,
+  MdShoppingCart,
+  MdAttachMoney,
+  MdLocalOffer,
+  MdPeople,
+} from "react-icons/md";
 
 const { Header, Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -39,6 +41,7 @@ const DashboardLayout = () => {
   const screens = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const { logout: logoutFromStore } = useAuthStore();
   const { mutate: logoutMutate, isPending } = useMutation({
@@ -51,7 +54,7 @@ const DashboardLayout = () => {
   });
 
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer, colorPrimary },
   } = theme.useToken();
 
   const siderStyle: React.CSSProperties = {
@@ -74,8 +77,7 @@ const DashboardLayout = () => {
     padding: "0",
     background: colorBgContainer,
   };
-  
-  const location = useLocation();
+
   const { user } = useAuthStore();
   if (user === null) {
     return <Navigate to={`/auth/login?returnTo=${location.pathname}`} />;
@@ -84,7 +86,12 @@ const DashboardLayout = () => {
   const items = [
     {
       key: "/",
-      icon: <Icon component={HomeIcon} />,
+      icon: (
+        <MdHome
+          size={22}
+          color={location.pathname === "/" ? colorPrimary : "#838181"}
+        />
+      ),
       label: (
         <NavLink to="/" onClick={() => setMobileMenuOpen(false)}>
           Home
@@ -93,7 +100,14 @@ const DashboardLayout = () => {
     },
     {
       key: "/restaurants",
-      icon: <Icon component={MenuIcon} />,
+      icon: (
+        <MdRestaurant
+          size={22}
+          color={
+            location.pathname === "/restaurants" ? colorPrimary : "#838181"
+          }
+        />
+      ),
       label: (
         <NavLink to="/restaurants" onClick={() => setMobileMenuOpen(false)}>
           Restaurants
@@ -102,7 +116,12 @@ const DashboardLayout = () => {
     },
     {
       key: "/orders",
-      icon: <Icon component={OrdersIcon} />,
+      icon: (
+        <MdShoppingCart
+          size={22}
+          color={location.pathname === "/orders" ? colorPrimary : "#838181"}
+        />
+      ),
       label: (
         <NavLink to="/orders" onClick={() => setMobileMenuOpen(false)}>
           Orders
@@ -111,7 +130,12 @@ const DashboardLayout = () => {
     },
     {
       key: "/sales",
-      icon: <Icon component={SalesIcon} />,
+      icon: (
+        <MdAttachMoney
+          size={22}
+          color={location.pathname === "/sales" ? colorPrimary : "#838181"}
+        />
+      ),
       label: (
         <NavLink to="/sales" onClick={() => setMobileMenuOpen(false)}>
           Sales
@@ -120,7 +144,12 @@ const DashboardLayout = () => {
     },
     {
       key: "/promos",
-      icon: <Icon component={PromosIcon} />,
+      icon: (
+        <MdLocalOffer
+          size={22}
+          color={location.pathname === "/promos" ? colorPrimary : "#838181"}
+        />
+      ),
       label: (
         <NavLink to="/promos" onClick={() => setMobileMenuOpen(false)}>
           Promos
@@ -132,7 +161,12 @@ const DashboardLayout = () => {
   if (user.role === "admin") {
     items.splice(1, 0, {
       key: "/users",
-      icon: <Icon component={UsersIcon} />,
+      icon: (
+        <MdPeople
+          size={22}
+          color={location.pathname === "/users" ? colorPrimary : "#838181"}
+        />
+      ),
       label: (
         <NavLink to="/users" onClick={() => setMobileMenuOpen(false)}>
           Users
@@ -150,6 +184,7 @@ const DashboardLayout = () => {
       theme="light"
       mode="inline"
       defaultSelectedKeys={["/"]}
+      selectedKeys={[location.pathname]}
       style={{
         background: colorBgContainer,
         paddingTop: "16px",
@@ -218,7 +253,9 @@ const DashboardLayout = () => {
                 )}
                 <Badge
                   status="success"
-                  text={user.role === "admin" ? "Admin" : user.tenant?.name ?? ""}
+                  text={
+                    user.role === "admin" ? "Admin" : user.tenant?.name ?? ""
+                  }
                 />
               </Space>
               <Space>

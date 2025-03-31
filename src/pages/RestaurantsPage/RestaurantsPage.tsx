@@ -24,6 +24,7 @@ import { useForm } from "antd/es/form/Form";
 import RestaurantForm from "./RestaurantForm";
 import { FieldData, Restaurant } from "../../types";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../store";
 
 const { useBreakpoint } = Grid;
 
@@ -84,6 +85,7 @@ const RestaurantsPage = () => {
   const notification = useNotification();
   const [form] = useForm();
   const [formFilter] = Form.useForm();
+  const {user} = useAuthStore();
 
   const addRestaurant = async (restaurantData: Restaurant) => {
     await createRestaurant(restaurantData);
@@ -210,19 +212,19 @@ const RestaurantsPage = () => {
             console.log(FilterName, FilterValue)
           }
         >
-          <Button
+          {
+            user?.role === "admin" && (
+              <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
               setDrawerOpen(true);
             }}
-            style={{
-              width: screens.xs ? "100%" : "auto",
-              marginTop: screens.xs ? "8px" : "0",
-            }}
           >
             Add Restaurant
           </Button>
+          )
+          }
         </RestaurantsFilter>
        </Form>
 

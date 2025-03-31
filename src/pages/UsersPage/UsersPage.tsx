@@ -1,5 +1,10 @@
-import { PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   Breadcrumb,
   Button,
@@ -11,13 +16,14 @@ import {
   Grid,
 } from "antd";
 import { NavLink } from "react-router-dom";
-import { createUser, getAllUsers } from "../../http/api";
+import { createUser, getAllUsers, updateUser } from "../../http/api";
 import UsersFilter from "./UsersFilter";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import UserForm from "./UserForm";
 import { FieldData, User } from "../../types";
 import { useNotification } from "../../context/NotificationContext";
 import { debounce } from "lodash";
+import { GoDash } from "react-icons/go";
 
 const { useBreakpoint } = Grid;
 
@@ -63,7 +69,7 @@ const getColumns = (screens: Record<string, boolean>) => [
     ellipsis: true,
     render: (_text: string, record: User) => {
       // show null if tenant is null
-      if (!record.tenant) return '--';
+      if (!record.tenant) return <GoDash />;
       return record.tenant.name;
     },
   },
@@ -80,13 +86,16 @@ const UsersPage = () => {
   const screens = useBreakpoint();
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
   const [queryParams, setQueryParams] = useState({
     currentPage: 1,
     perPage: 5,
   });
 
   const getUsers = async () => {
-    const filteredValues = Object.fromEntries(Object.entries(queryParams).filter((item)=> !!item[1]));
+    const filteredValues = Object.fromEntries(
+      Object.entries(queryParams).filter((item) => !!item[1])
+    );
     const queryParamasString = new URLSearchParams(
       filteredValues as unknown as Record<string, string>
     ).toString();
@@ -97,6 +106,16 @@ const UsersPage = () => {
 
   const addUser = async (userData: User) => {
     await createUser(userData);
+  };
+
+  const userUpdate = async (userData: User & { confirmPassword?: string }) => {
+    if (!editUser?.id) throw new Error("User ID is required");
+
+    // Remove confirmPassword if it exists as it's not needed for update
+    // const { confirmPassword, ...updateData } = userData;
+
+    console.log("Sending update request for user:", editUser.id, userData);
+    return await updateUser(userData as User, editUser.id);
   };
 
   const {
@@ -128,52 +147,88 @@ const UsersPage = () => {
     },
   });
 
+  const { mutate: updateMutate, isPending: updateUserMutationPending } =
+    useMutation({
+      mutationKey: ["updateUser"],
+      mutationFn: userUpdate,
+      onSuccess: () => {
+        setDrawerOpen(false);
+        form.resetFields();
+        notification.success("User updated successfully");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+      },
+
+      onError: () => {
+        setDrawerOpen(false);
+        form.resetFields();
+        notification.error("Something went wrong");
+      },
+    });
+
   const [form] = Form.useForm();
   const [formfilter] = Form.useForm();
 
   const handleOnSubmit = async () => {
-    await form.validateFields();
-    console.log(form.getFieldsValue());
-    mutate(form.getFieldsValue() as User);
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      const isEditMode = !!editUser;
+
+      if (isEditMode && editUser?.id) {
+        console.log("Updating user...", values);
+        await updateMutate({ ...values, id: editUser.id });
+      } else {
+        console.log("Creating user...", values);
+        await mutate(values);
+      }
+    } catch (error) {
+      console.error("Form validation or submission error:", error);
+    }
   };
 
+  useEffect(() => {
+    if (editUser) {
+      setDrawerOpen(true);
+      console.log("editUser", editUser);
+      form.setFieldsValue({ ...editUser, tenantId: editUser.tenant?.id });
+    }
+  }, [editUser, form]);
 
-  const debounceQUpdate = useMemo(()=>{
-      return debounce((value:string | undefined)=>{
-        setQueryParams((prev)=>({
-          ...prev,
-          q:value,
-          currentPage:1
-        }))
-      },500)
-  },[])
+  const debounceQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({
+        ...prev,
+        q: value,
+        currentPage: 1,
+      }));
+    }, 500);
+  }, []);
 
-  const handleFilterChange = (changedFields: FieldData[])=>{
+  const handleFilterChange = (changedFields: FieldData[]) => {
     // {
     // q: "K",
-    // role: "admin"   
-  // }
-console.log("Changed fields: ",changedFields);
+    // role: "admin"
+    // }
+    console.log("Changed fields: ", changedFields);
 
-  const filter = changedFields.map((item)=>({
-    [item.name[0]]: item.value
-  }))
-  .reduce((acc,curr)=>{
-    return {...acc, ...curr}
-  },{})
+    const filter = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, curr) => {
+        return { ...acc, ...curr };
+      }, {});
 
-  if('q' in filter){
-    debounceQUpdate(filter.q);
-  }else{
-    setQueryParams((prev)=>({
-      ...prev,
-      ...filter,
-      currentPage:1
-    }))
-  }
-
- 
-  }
+    if ("q" in filter) {
+      debounceQUpdate(filter.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...filter,
+        currentPage: 1,
+      }));
+    }
+  };
 
   if (isError) {
     return (
@@ -205,39 +260,38 @@ console.log("Changed fields: ",changedFields);
             marginBottom: screens.xs ? "8px" : "16px",
           }}
         />
-       <Form 
-       form={formfilter}
-       onFieldsChange={handleFilterChange}
-       >
-       <UsersFilter
-          onFilterChange={(FilterName, FilterValue) =>
-            console.log(FilterName, FilterValue)
-          }
-        >
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              console.log("Add User Clicked");
-              setDrawerOpen(true);
-            }}
-            style={{
-              width: screens.xs ? "100%" : "auto",
-              marginTop: screens.xs ? "8px" : "0",
-            }}
+        <Form form={formfilter} onFieldsChange={handleFilterChange}>
+          <UsersFilter
+            onFilterChange={(FilterName, FilterValue) =>
+              console.log(FilterName, FilterValue)
+            }
           >
-            Add User
-          </Button>
-        </UsersFilter>
-       </Form>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                console.log("Add User Clicked");
+                setDrawerOpen(true);
+              }}
+              style={{
+                width: screens.xs ? "100%" : "auto",
+                marginTop: screens.xs ? "8px" : "0",
+              }}
+            >
+              Add User
+            </Button>
+          </UsersFilter>
+        </Form>
 
         <Drawer
-          title="Create a new user"
+          title={editUser ? "Edit User" : "Create a new user"}
           width={screens.xs ? "100%" : 720}
-          loading={createUserMutationPending}
+          loading={createUserMutationPending || updateUserMutationPending}
           onClose={() => {
             console.log("Drawer Closed");
             setDrawerOpen(false);
+            setEditUser(null);
+            form.resetFields();
           }}
           destroyOnClose={true}
           open={drawerOpen}
@@ -262,7 +316,10 @@ console.log("Changed fields: ",changedFields);
               padding: screens.xs ? "8px" : "24px",
             }}
           >
-            <UserForm />
+            <UserForm
+              isEditMode={!!editUser}
+              initialValues={editUser || undefined}
+            />
           </Form>
         </Drawer>
 
@@ -272,7 +329,29 @@ console.log("Changed fields: ",changedFields);
         >
           <Table
             rowKey={"id"}
-            columns={getColumns(screens)}
+            columns={[
+              ...getColumns(screens),
+              {
+                title: "Action",
+                dataIndex: "action",
+                width: screens.xs ? 100 : "15%",
+                ellipsis: true,
+                render: (_: string, record: User) => {
+                  return (
+                    <Space>
+                      <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditUser(record);
+                        }}
+                      />
+                      {/* <Button type="link" icon={<DeleteOutlined />} /> */}
+                    </Space>
+                  );
+                },
+              },
+            ]}
             dataSource={users?.data}
             loading={isFetching}
             scroll={{
@@ -296,7 +375,8 @@ console.log("Changed fields: ",changedFields);
                 });
               },
               size: screens.xs ? "small" : ("default" as const),
-              showTotal: (total, range) => `Showing ${range[0]}-${range[1]} of ${total}`,
+              showTotal: (total, range) =>
+                `Showing ${range[0]}-${range[1]} of ${total}`,
               showQuickJumper: !screens.xs,
               style: {
                 marginTop: screens.xs ? "8px" : "16px",

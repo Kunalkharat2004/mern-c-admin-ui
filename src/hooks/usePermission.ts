@@ -1,4 +1,4 @@
-import { User } from "../store";
+import { User } from "../types";
 
 export const usePermission = () =>{
     const allowedRoles = ["admin", "manager"];
