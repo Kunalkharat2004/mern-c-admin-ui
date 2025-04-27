@@ -1,9 +1,16 @@
 import {
+  DeleteOutlined,
+  EditOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   Breadcrumb,
   Button,
@@ -14,10 +21,17 @@ import {
   Space,
   Table,
   Grid,
+  Checkbox,
 } from "antd";
 import { NavLink } from "react-router-dom";
-import { createRestaurant, getAllTenants } from "../../http/api";
-import { useMemo, useState } from "react";
+import {
+  createRestaurant,
+  deleteRestaurantApi,
+  getAllTenants,
+  getManagerCount,
+  updateTenant,
+} from "../../http/api";
+import { useEffect, useMemo, useState } from "react";
 import { useNotification } from "../../context/NotificationContext";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { useForm } from "antd/es/form/Form";
@@ -80,12 +94,19 @@ const RestaurantsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [queryParams, setQueryParams] = useState({
     currentPage: 1,
-    perPage:5
+    perPage: 5,
   });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteRestaurant, setDeleteRestaurant] = useState<Restaurant | null>(
+    null
+  );
   const notification = useNotification();
   const [form] = useForm();
   const [formFilter] = Form.useForm();
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
+  const [editRestaurant, setEditRestaurant] = useState<Restaurant | null>(null);
+  const [managerCount, setManagerCount] = useState<number>(0);
+  const [deleteManagers, setDeleteManagers] = useState<boolean>(true);
 
   const addRestaurant = async (restaurantData: Restaurant) => {
     await createRestaurant(restaurantData);
@@ -108,10 +129,47 @@ const RestaurantsPage = () => {
     },
   });
 
+  const updateRestaurant = async (restaurantData: Restaurant) => {
+    return await updateTenant(restaurantData as Restaurant);
+  };
+
+  const {
+    mutate: updateRestaurantMutate,
+    isPending: updateRestaurantMutationPending,
+  } = useMutation({
+    mutationKey: ["updateRestaurant"],
+    mutationFn: updateRestaurant,
+    onSuccess: () => {
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.success("Restaurant updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+
+    onError: () => {
+      setDrawerOpen(false);
+      form.resetFields();
+      notification.error("Something went wrong");
+    },
+  });
+
   const handleOnSubmit = async () => {
-    await form.validateFields();
-    console.log(form.getFieldsValue());
-    mutate(form.getFieldsValue() as Restaurant);
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      const isEdit = !!editRestaurant;
+
+      if (isEdit) {
+        console.log("updating...");
+        updateRestaurantMutate({ ...values, id: editRestaurant?.id });
+      } else {
+        console.log("creating...");
+        mutate(values);
+      }
+    } catch (err) {
+      console.error("Form validation or submission error:", err);
+      notification.error("Something went wrong");
+    }
   };
 
   const handleModalOk = () => {
@@ -125,7 +183,9 @@ const RestaurantsPage = () => {
   };
 
   const getTenants = async () => {
-    const filteredValues = Object.fromEntries(Object.entries(queryParams).filter((item)=> !!item[1]));
+    const filteredValues = Object.fromEntries(
+      Object.entries(queryParams).filter((item) => !!item[1])
+    );
     const queryParamsString = new URLSearchParams(
       filteredValues as unknown as Record<string, string>
     ).toString();
@@ -139,40 +199,80 @@ const RestaurantsPage = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["tenants",queryParams],
+    queryKey: ["tenants", queryParams],
     queryFn: getTenants,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  
-  const debounceQUpdate = useMemo(()=>{
-    return debounce((value:string | undefined)=>{
-      setQueryParams((prev)=>({
+  const debounceQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({
         ...prev,
-        q:value,
-        currentPage:1
+        q: value,
+        currentPage: 1,
+      }));
+    }, 500);
+  }, []);
+
+  const handleFilterChange = (changedFields: FieldData[]) => {
+    const filter = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
       }))
-    },500)
-},[])
+      .reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
-  const handleFilterChange = (changedFields: FieldData[])=>{
-    const filter = changedFields.map((item)=>({
-      [item.name[0]]: item.value
-    }))
-    .reduce((acc,curr)=>({...acc, ...curr}),{})
+    if ("q" in filter) {
+      debounceQUpdate(filter.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...filter,
+        currentPage: 1,
+      }));
+    }
+  };
 
-   if("q" in filter){
-    debounceQUpdate(filter.q);
-   }else{
-    setQueryParams((prev)=>({
-      ...prev,
-      ...filter,
-      currentPage:1
-    }))
-   }
-  }
+  useEffect(() => {
+    if (editRestaurant) {
+      setDrawerOpen(true);
+      form.setFieldsValue(editRestaurant);
+    }
+  }, [editRestaurant, form]);
 
+  const showDeleteModal = async (restaurant: Restaurant) => {
+    setDeleteRestaurant(restaurant);
+    setIsDeleteModalOpen(true);
+    try {
+    const {data} = await getManagerCount(restaurant.id as string);
+      console.log("count", data.count);
+      setManagerCount(data.count);
+      setDeleteManagers(true); // Set to true by default
+    } catch (error) {
+      console.error("Error fetching manager count:", error);
+      notification.error("Failed to fetch manager count");
+    }
+  };
+
+  const handleDeleteRestaurant = async (id: string | undefined) => {
+    if (!id) {
+      notification.error("Invalid restaurant ID");
+      return;
+    }
+
+    try {
+      await deleteRestaurantApi(`${id}?deleteManagers=${deleteManagers}`);
+      notification.success("Restaurant deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      setIsDeleteModalOpen(false);
+      setDeleteRestaurant(null);
+      setManagerCount(0);
+      setDeleteManagers(true);
+    } catch (error) {
+      console.error("Error deleting restaurant:", error);
+      notification.error("Something went wrong");
+    }
+  };
   if (isError) {
     return (
       <Result
@@ -203,38 +303,36 @@ const RestaurantsPage = () => {
             marginBottom: screens.xs ? "8px" : "16px",
           }}
         />
-       <Form
-        form={formFilter}
-        onFieldsChange={handleFilterChange}
-       >
-       <RestaurantsFilter
-          onFilterChange={(FilterName, FilterValue) =>
-            console.log(FilterName, FilterValue)
-          }
-        >
-          {
-            user?.role === "admin" && (
-              <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setDrawerOpen(true);
-            }}
+        <Form form={formFilter} onFieldsChange={handleFilterChange}>
+          <RestaurantsFilter
+            onFilterChange={(FilterName, FilterValue) =>
+              console.log(FilterName, FilterValue)
+            }
           >
-            Add Restaurant
-          </Button>
-          )
-          }
-        </RestaurantsFilter>
-       </Form>
+            {user?.role === "admin" && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setDrawerOpen(true);
+                  setEditRestaurant(null);
+                }}
+              >
+                Add Restaurant
+              </Button>
+            )}
+          </RestaurantsFilter>
+        </Form>
 
         <Drawer
-          title="Create a new restaurant"
+          title={editRestaurant ? "Edit Restaurant" : "Create a new restaurant"}
           width={screens.xs ? "100%" : 720}
-          loading={createRestaurantMutationPending}
+          loading={
+            createRestaurantMutationPending || updateRestaurantMutationPending
+          }
           onClose={() => {
-            console.log("Drawer Closed");
             setDrawerOpen(false);
+            form.resetFields();
           }}
           destroyOnClose={true}
           open={drawerOpen}
@@ -286,7 +384,33 @@ const RestaurantsPage = () => {
         >
           <Table
             rowKey={"id"}
-            columns={getColumns(screens)}
+            columns={[
+              ...getColumns(screens),
+              {
+                title: "Action",
+                dataIndex: "action",
+                width: screens.xs ? 100 : "15%",
+                ellipsis: true,
+                render: (_: string, record: Restaurant) => {
+                  return (
+                    <Space>
+                      <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditRestaurant(record);
+                        }}
+                      />
+                      <Button
+                        type="link"
+                        onClick={() => showDeleteModal(record)}
+                        icon={<DeleteOutlined />}
+                      />
+                    </Space>
+                  );
+                },
+              },
+            ]}
             dataSource={tenants?.data}
             loading={isPending}
             size={screens.xs ? "small" : ("middle" as const)}
@@ -302,7 +426,7 @@ const RestaurantsPage = () => {
               current: queryParams.currentPage,
               pageSize: queryParams.perPage,
               total: tenants?.total,
-              onChange:(page)=>{
+              onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
                     ...prev,
@@ -311,7 +435,8 @@ const RestaurantsPage = () => {
                 });
               },
               size: screens.xs ? "small" : ("default" as const),
-              showTotal: (total, range) => `Showing ${range[0]}-${range[1]} of ${total}`,
+              showTotal: (total, range) =>
+                `Showing ${range[0]}-${range[1]} of ${total}`,
               showQuickJumper: !screens.xs,
               style: {
                 marginTop: screens.xs ? "8px" : "16px",
@@ -319,6 +444,54 @@ const RestaurantsPage = () => {
             }}
           />
         </div>
+
+        <Modal
+          title={
+            <span>
+              <ExclamationCircleOutlined
+                style={{ color: "#ff4d4f", marginRight: 8 }}
+              />
+              Delete Restaurant
+            </span>
+          }
+          open={isDeleteModalOpen}
+          onOk={() =>
+            deleteRestaurant?.id && handleDeleteRestaurant(deleteRestaurant.id)
+          }
+          onCancel={() => {
+            setIsDeleteModalOpen(false);
+            setDeleteRestaurant(null);
+            setManagerCount(0);
+            setDeleteManagers(true);
+          }}
+          okText="Delete"
+          okButtonProps={{ danger: true }}
+        >
+          {deleteRestaurant && (
+            <>
+              <p>Are you sure you want to delete this restaurant?</p>
+              <p>
+                <strong>Restaurant:</strong> {deleteRestaurant.name}
+              </p>
+
+              {managerCount > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <p style={{ color: "#ff4d4f" }}>
+                    This restaurant has {managerCount} manager
+                    {managerCount !== 1 ? "s" : ""} associated with it.
+                  </p>
+                  <Checkbox
+                    checked={deleteManagers}
+                    onChange={(e) => setDeleteManagers(e.target.checked)}
+                    style={{ marginTop: 8 }}
+                  >
+                    Delete all associated managers ({managerCount})
+                  </Checkbox>
+                </div>
+              )}
+            </>
+          )}
+        </Modal>
       </Space>
     </>
   );
