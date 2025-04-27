@@ -12,7 +12,7 @@ const api = axios.create({
 
 const refreshToken = async () => {
   await axios.post(
-    `${import.meta.env.VITE_BACKEND_URL}/auth/refresh`,
+    `${import.meta.env.VITE_BACKEND_URL}${import.meta.env.VITE_AUTH_SERVICE_URL}/auth/refresh`,
     {},
     { withCredentials: true }
   );

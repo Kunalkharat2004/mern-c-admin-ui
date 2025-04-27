@@ -14,12 +14,14 @@ export interface User {
 };
 
 export interface Tenant {
+    _id?: string;
     id: string;
     name: string;
     address: string;
 }
 
 export interface Restaurant {
+    id?: string;
     name: string;
     address: string;
 }
@@ -27,4 +29,9 @@ export interface Restaurant {
 export interface FieldData {
     name: string[];
     value?: string;
+}
+
+export interface ICategory {
+    _id: string;
+    name: string;
 }

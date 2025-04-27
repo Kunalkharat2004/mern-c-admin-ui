@@ -6,6 +6,7 @@ import AuthLayout from "./layouts/AuthLayout";
 import Root from "./layouts/Root";
 import UsersPage from "./pages/UsersPage/UsersPage";
 import RestaurantsPage from "./pages/RestaurantsPage/RestaurantsPage";
+import ProductsPage from "./pages/ProductsPage/ProductsPage";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
           {
             path: "restaurants",
             element: <RestaurantsPage />,
+          },
+          {
+            path: "products",
+            element: <ProductsPage />,
           },
         ],
       },

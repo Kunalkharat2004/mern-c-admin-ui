@@ -32,6 +32,7 @@ import {
   MdAttachMoney,
   MdLocalOffer,
   MdPeople,
+  MdOutlineShoppingBasket,
 } from "react-icons/md";
 
 const { Header, Sider, Content } = Layout;
@@ -111,6 +112,20 @@ const DashboardLayout = () => {
       label: (
         <NavLink to="/restaurants" onClick={() => setMobileMenuOpen(false)}>
           Restaurants
+        </NavLink>
+      ),
+    },
+    {
+      key: "/products",
+      icon: (
+        <MdOutlineShoppingBasket
+          size={22}
+          color={location.pathname === "/products" ? colorPrimary : "#838181"}
+        />
+      ),
+      label: (
+        <NavLink to="/products" onClick={() => setMobileMenuOpen(false)}>
+          Products
         </NavLink>
       ),
     },
