@@ -1,4 +1,9 @@
-import { EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import {
   keepPreviousData,
   useMutation,
@@ -14,9 +19,15 @@ import {
   Space,
   Table,
   Grid,
+  Modal,
 } from "antd";
 import { NavLink } from "react-router-dom";
-import { createUser, getAllUsers, updateUser } from "../../http/api";
+import {
+  createUser,
+  getAllUsers,
+  deleteUser,
+  updateUser,
+} from "../../http/api";
 import UsersFilter from "./UsersFilter";
 import { useEffect, useMemo, useState } from "react";
 import UserForm from "./UserForm";
@@ -87,6 +98,8 @@ const UsersPage = () => {
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [queryParams, setQueryParams] = useState({
     currentPage: 1,
     perPage: 5,
@@ -108,13 +121,8 @@ const UsersPage = () => {
     await createUser(userData);
   };
 
-  const userUpdate = async (userData: User & { confirmPassword?: string }) => {
+  const userUpdate = async (userData: User) => {
     if (!editUser?.id) throw new Error("User ID is required");
-
-    // Remove confirmPassword if it exists as it's not needed for update
-    // const { confirmPassword, ...updateData } = userData;
-
-    console.log("Sending update request for user:", editUser.id, userData);
     return await updateUser(userData as User, editUser.id);
   };
 
@@ -230,6 +238,28 @@ const UsersPage = () => {
     }
   };
 
+  const handleDeleteUser = async (id: string | undefined) => {
+    if (!id) {
+      notification.error("Invalid user ID");
+      return;
+    }
+    try {
+      await deleteUser(id);
+      notification.success("User deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      notification.error("Something went wrong");
+    }
+  };
+
+  const showDeleteModal = (user: User) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
+
   if (isError) {
     return (
       <Result
@@ -270,7 +300,6 @@ const UsersPage = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => {
-                console.log("Add User Clicked");
                 setDrawerOpen(true);
               }}
               style={{
@@ -346,7 +375,11 @@ const UsersPage = () => {
                           setEditUser(record);
                         }}
                       />
-                      {/* <Button type="link" icon={<DeleteOutlined />} /> */}
+                      <Button
+                        type="link"
+                        onClick={() => showDeleteModal(record)}
+                        icon={<DeleteOutlined />}
+                      />
                     </Space>
                   );
                 },
@@ -385,6 +418,26 @@ const UsersPage = () => {
             size={screens.xs ? "small" : ("middle" as const)}
           />
         </div>
+
+        <Modal
+          title="Delete User"
+          open={deleteModalOpen}
+          onOk={() => userToDelete?.id && handleDeleteUser(userToDelete.id)}
+          onCancel={() => {
+            setDeleteModalOpen(false);
+            setUserToDelete(null);
+          }}
+          okText="Delete"
+          okButtonProps={{ danger: true }}
+        >
+          <p>Are you sure you want to delete this user?</p>
+          {userToDelete && (
+            <p>
+              <strong>User:</strong> {userToDelete.firstName}{" "}
+              {userToDelete.lastName}
+            </p>
+          )}
+        </Modal>
       </Space>
     </>
   );
