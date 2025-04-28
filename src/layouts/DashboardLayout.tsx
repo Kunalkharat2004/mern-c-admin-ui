@@ -42,12 +42,18 @@ const DashboardLayout = () => {
   const screens = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLogoutClicked, setIsLogoutClicked] = useState(false);
   const location = useLocation();
 
+
+  const handleLogout = async()=>{
+    setIsLogoutClicked(true);
+    await logout();
+  }
   const { logout: logoutFromStore } = useAuthStore();
   const { mutate: logoutMutate, isPending } = useMutation({
     mutationKey: ["logout"],
-    mutationFn: logout,
+    mutationFn: handleLogout,
     onSuccess: async () => {
       logoutFromStore();
       return;
@@ -81,7 +87,9 @@ const DashboardLayout = () => {
 
   const { user } = useAuthStore();
   if (user === null) {
-    return <Navigate to={`/auth/login?returnTo=${location.pathname}`} />;
+    return isLogoutClicked
+    ? <Navigate to={`/auth/login?returnTo=${"/"}`} />
+    :<Navigate to={`/auth/login?returnTo=${location.pathname}`} />;
   }
 
   const items = [
@@ -96,22 +104,6 @@ const DashboardLayout = () => {
       label: (
         <NavLink to="/" onClick={() => setMobileMenuOpen(false)}>
           Home
-        </NavLink>
-      ),
-    },
-    {
-      key: "/restaurants",
-      icon: (
-        <MdRestaurant
-          size={22}
-          color={
-            location.pathname === "/restaurants" ? colorPrimary : "#838181"
-          }
-        />
-      ),
-      label: (
-        <NavLink to="/restaurants" onClick={() => setMobileMenuOpen(false)}>
-          Restaurants
         </NavLink>
       ),
     },
@@ -188,6 +180,23 @@ const DashboardLayout = () => {
         </NavLink>
       ),
     });
+
+    items.splice(2,0,  {
+      key: "/restaurants",
+      icon: (
+        <MdRestaurant
+          size={22}
+          color={
+            location.pathname === "/restaurants" ? colorPrimary : "#838181"
+          }
+        />
+      ),
+      label: (
+        <NavLink to="/restaurants" onClick={() => setMobileMenuOpen(false)}>
+          Restaurants
+        </NavLink>
+      ),
+    },)
   }
 
   if (isPending) {

@@ -13,6 +13,7 @@ import {
 } from "antd";
 import { getAllCategories, getAllTenants } from "../../http/api";
 import { ICategory, Tenant } from "../../types";
+import { useAuthStore } from "../../store";
 
 const { useBreakpoint } = Grid;
 
@@ -48,6 +49,7 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
     staleTime: 1000 * 60 * 5,
   });
 
+  const {user} = useAuthStore();
   return (
     <>
       <Card>
@@ -58,7 +60,6 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               wrap
               direction={screens.xs ? "vertical" : "horizontal"}
               style={{ width: "100%" }}
-              // align="center"
             >
               <Form.Item
                 name="q"
@@ -88,22 +89,26 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                 </Select>
               </Form.Item>
 
-              <Form.Item
-                name="tenantId"
-                style={{ marginBottom: 0, width: screens.xs ? "100%" : 150 }}
-              >
-                <Select
-                  placeholder="Select restaurant"
-                  style={{ width: screens.xs ? "100%" : 150 }}
-                  allowClear
-                >
-                  {restaurants?.data?.map((restaurant: Tenant) => (
-                    <Select.Option key={restaurant.id} value={restaurant.id}>
-                      {restaurant.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
+                  {
+                    user?.role === "admin" && (
+                      <Form.Item
+                      name="tenantId"
+                      style={{ marginBottom: 0, width: screens.xs ? "100%" : 150 }}
+                    >
+                      <Select
+                        placeholder="Select restaurant"
+                        style={{ width: screens.xs ? "100%" : 150 }}
+                        allowClear
+                      >
+                        {restaurants?.data?.map((restaurant: Tenant) => (
+                          <Select.Option key={restaurant.id} value={restaurant.id}>
+                            {restaurant.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                    )
+                  }
 
               <Space
                 align="center"

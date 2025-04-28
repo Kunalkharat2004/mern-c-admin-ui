@@ -19,6 +19,7 @@ import { useMemo, useState } from "react";
 import { FieldData, Products } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../store";
 
 const { useBreakpoint } = Grid;
 
@@ -123,9 +124,11 @@ const ProductsPage = () => {
   const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
 
+  const {user} = useAuthStore();
   const [queryParams, setQueryParams] = useState({
     page: 1,
     limit: 10,
+    tenantId: user?.role === "manager" ? user.tenant?.id : undefined,
   });
 
   const getProducts = async () => {
