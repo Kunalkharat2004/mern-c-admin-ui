@@ -71,6 +71,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
       debounceQUpdate(value);
     } else {
       setQueryParams((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { q, ...rest } = prev;
         return {
           ...rest,
