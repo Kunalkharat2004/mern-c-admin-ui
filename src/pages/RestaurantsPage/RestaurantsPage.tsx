@@ -22,6 +22,7 @@ import {
   Table,
   Grid,
   Checkbox,
+  Typography,
 } from "antd";
 import { NavLink } from "react-router-dom";
 import {
@@ -39,6 +40,7 @@ import RestaurantForm from "./RestaurantForm";
 import { FieldData, Restaurant } from "../../types";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
+import { format } from "date-fns";
 
 const { useBreakpoint } = Grid;
 
@@ -76,13 +78,8 @@ const getColumns = (screens: Record<string, boolean>) => [
     dataIndex: "createdAt",
     width: screens.xs ? 150 : "30%",
     ellipsis: true,
-    render: (createdAt: Date) => {
-      const date = new Date(createdAt);
-      return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: screens.xs ? "short" : "long",
-        year: "numeric",
-      });
+    render: (text: string) => {
+      return <Typography.Text>{format(new Date(text),"dd/MM/yyyy HH:MM")}</Typography.Text>;
     },
   },
 ];
