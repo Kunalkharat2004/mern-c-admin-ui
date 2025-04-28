@@ -31,10 +31,26 @@ export interface FieldData {
     value?: string;
 }
 
+export interface IPriceConfiguration {
+    [key: string]:{
+       priceType: "base" | "additional",
+       availableOptions: Array<string>;
+    }
+   }
+   
+export interface IAttributeConfiguration {
+       name: string,
+       widgetType: "radio" | "switch",
+       defaultValue: string,
+       availableOptions: Array<string>
+   }
+   
 export interface ICategory {
-    _id: string;
-    name: string;
-}
+        _id: string;
+       name: string,
+       priceConfiguration: IPriceConfiguration,
+       attributeConfiguration: Array<IAttributeConfiguration>
+   }
 
 export interface Products {
     name: string;

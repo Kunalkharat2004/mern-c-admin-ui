@@ -2,6 +2,7 @@ import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import {
   Breadcrumb,
   Button,
+  Drawer,
   Form,
   Grid,
   Image,
@@ -20,6 +21,7 @@ import { FieldData, Products } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
+import ProductForm from "./form/ProductForm";
 
 const { useBreakpoint } = Grid;
 
@@ -123,6 +125,7 @@ const getColumns = (screens: Record<string, boolean>) => [
 const ProductsPage = () => {
   const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
+  const [form] = Form.useForm();
 
   const {user} = useAuthStore();
   const [queryParams, setQueryParams] = useState({
@@ -130,6 +133,7 @@ const ProductsPage = () => {
     limit: 10,
     tenantId: user?.role === "manager" ? user.tenant?.id : undefined,
   });
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const getProducts = async () => {
     const filteredValues = Object.fromEntries(
@@ -189,6 +193,10 @@ const ProductsPage = () => {
     }
   };
 
+  const handleOnSubmit = ()=>{
+    console.log("submitting...");
+  }
+
   if (isError) {
     return (
       <Result
@@ -225,7 +233,9 @@ const ProductsPage = () => {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => {}}
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
               style={{
                 width: screens.xs ? "100%" : "auto",
                 marginTop: screens.xs ? "8px" : "0",
@@ -235,7 +245,41 @@ const ProductsPage = () => {
             </Button>
           </ProductsFilter>
         </Form>
-
+              
+        <Drawer
+          title={"Create a new product"}
+          width={screens.xs ? "100%" : 720}
+          onClose={() => {
+            console.log("Drawer Closed");
+            setDrawerOpen(false);
+            form.resetFields();
+          }}
+          destroyOnClose={true}
+          open={drawerOpen}
+          extra={
+            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
+              <Button onClick={handleOnSubmit} type="primary">
+                Submit
+              </Button>
+            </Space>
+          }
+          placement={screens.xs ? "bottom" : "right"}
+          height={screens.xs ? "80%" : undefined}
+        >
+          <Form
+            layout="vertical"
+            onFinish={(values) => {
+              console.log(values);
+            }}
+            form={form}
+            style={{
+              padding: screens.xs ? "8px" : "24px",
+            }}
+          >
+            <ProductForm/>
+          </Form>
+        </Drawer>
         <div
           className="table-container"
           style={{
