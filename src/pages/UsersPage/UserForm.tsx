@@ -300,7 +300,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                   },
                 ]}
               >
-                <TextArea rows={screens.xs ? 3 : 4} allowClear />
+                <TextArea style={{resize: "none"}} rows={screens.xs ? 3 : 4} allowClear />
               </Form.Item>
             </Col>
           </Row>

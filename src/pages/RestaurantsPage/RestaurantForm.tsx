@@ -37,9 +37,11 @@ const RestaurantForm = () => {
           ]}
         >
           <TextArea
-            rows={screens.xs ? 4 : 6}
+            rows={screens.xs ? 2 : 4}
             allowClear
-            style={{ width: screens.xs ? "100%" : "80%" }}
+            style={{ width: screens.xs ? "100%" : "80%",
+              resize:"none"
+             }}
           />
         </Form.Item>
       </Card>
