@@ -58,9 +58,12 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               wrap
               direction={screens.xs ? "vertical" : "horizontal"}
               style={{ width: "100%" }}
-              align="center"
+              // align="center"
             >
-              <Form.Item name="q" style={{ marginBottom: 0 }}>
+              <Form.Item
+                name="q"
+                style={{ marginBottom: 0, width: screens.xs ? "100%" : "auto" }}
+              >
                 <Input.Search
                   placeholder="Search Product"
                   allowClear
@@ -68,7 +71,10 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                 />
               </Form.Item>
 
-              <Form.Item name="categoryId" style={{ marginBottom: 0 }}>
+              <Form.Item
+                name="categoryId"
+                style={{ marginBottom: 0, width: screens.xs ? "100%" : 150 }}
+              >
                 <Select
                   placeholder="Select Category"
                   style={{ width: screens.xs ? "100%" : 150 }}
@@ -82,7 +88,10 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                 </Select>
               </Form.Item>
 
-              <Form.Item name="tenantId" style={{ marginBottom: 0 }}>
+              <Form.Item
+                name="tenantId"
+                style={{ marginBottom: 0, width: screens.xs ? "100%" : 150 }}
+              >
                 <Select
                   placeholder="Select restaurant"
                   style={{ width: screens.xs ? "100%" : 150 }}
@@ -96,7 +105,10 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                 </Select>
               </Form.Item>
 
-              <Space align="center">
+              <Space
+                align="center"
+                style={{ width: screens.xs ? "100%" : "auto" }}
+              >
                 <Form.Item name="isPublished" style={{ marginBottom: 0 }}>
                   <Switch defaultChecked={false} />
                 </Form.Item>

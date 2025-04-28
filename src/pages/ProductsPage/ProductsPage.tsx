@@ -1,5 +1,16 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons"
-import { Breadcrumb, Button, Form, Grid, Image, Result, Space, Table, Tag,Typography } from "antd"
+import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  Breadcrumb,
+  Button,
+  Form,
+  Grid,
+  Image,
+  Result,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -12,80 +23,104 @@ import { debounce } from "lodash";
 const { useBreakpoint } = Grid;
 
 const BreadcrumbItems = [
-    {
-      title: <NavLink to="/">Dashboard</NavLink>,
-    },
-    {
-      title: "Products",
-      link: "/products",
-    },
-  ];
+  {
+    title: <NavLink to="/">Dashboard</NavLink>,
+  },
+  {
+    title: "Products",
+    link: "/products",
+  },
+];
 
-  const getColumns = (screens: Record<string, boolean>) => [
-    {
-      title: "Name",
-      dataIndex: "name",
-      width: screens.xs ? 150 : "30%",
-      ellipsis: true,
-      render: (text: string, record: Products) => {
-          return <>
+const getColumns = (screens: Record<string, boolean>) => [
+  {
+    title: "Name",
+    dataIndex: "name",
+    width: screens.xs ? "40%" : "30%",
+    ellipsis: true,
+    render: (text: string, record: Products) => {
+      return (
+        <Space size="small" align="center">
           <Image
             src={record.image}
             fallback="https://via.placeholder.com/150"
             preview={false}
             alt={text}
             style={{
-              width: screens.xs ? 50 : 100,
-              height: screens.xs ? 50 : 100,
+              width: screens.xs ? 40 : 60,
+              height: screens.xs ? 40 : 60,
               objectFit: "cover",
               borderRadius: "8px",
-              marginRight: screens.xs ? "8px" : "16px",
             }}
           />
-          <Typography.Text>{text}</Typography.Text>
-          </>
-      },
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      width: screens.xs ? 150 : "15%",
-      ellipsis: true,
-    },
-    {
-      title: "Category",
-      dataIndex: "category",
-      width: screens.xs ? 100 : "15%",
-      ellipsis: true,
-      render:(_:string, record:Products) => {
-          return <>{record.category?.name}</>
-      }
-    },
-    {
-      title: "Status",
-      dataIndex: "isPublished",
-      width: screens.xs ? 100 : "15%",
-      ellipsis: true,
-      render: (_:boolean, record:Products) =>{
-        return<>{record.isPublished ? <Tag color="green">Published</Tag> : <Tag color="red">Draft</Tag>}</>
-      }
-    },
-  
-   {
-    title: "Created At",
-    dataIndex: "createdAt",
-    width: screens.xs ? 150 : "30%",
-    ellipsis: true,
-    render: (text: string) => {
-      return <Typography.Text>{format(new Date(text),"dd/MM/yyyy HH:MM")}</Typography.Text>;
+          <Typography.Text
+            ellipsis
+            style={{ maxWidth: screens.xs ? 100 : 200 }}
+          >
+            {text}
+          </Typography.Text>
+        </Space>
+      );
     },
   },
-  ];
-  
+  {
+    title: "Description",
+    dataIndex: "description",
+    width: screens.xs ? "30%" : "20%",
+    ellipsis: true,
+    render: (text: string) => (
+      <Typography.Text ellipsis style={{ maxWidth: screens.xs ? 100 : 200 }}>
+        {text}
+      </Typography.Text>
+    ),
+  },
+  {
+    title: "Category",
+    dataIndex: "category",
+    width: screens.xs ? "15%" : "15%",
+    ellipsis: true,
+    render: (_: string, record: Products) => {
+      return (
+        <Typography.Text ellipsis style={{ maxWidth: screens.xs ? 80 : 150 }}>
+          {record.category?.name}
+        </Typography.Text>
+      );
+    },
+  },
+  {
+    title: "Status",
+    dataIndex: "isPublished",
+    width: screens.xs ? "15%" : "10%",
+    ellipsis: true,
+    render: (_: boolean, record: Products) => {
+      return (
+        <>
+          {record.isPublished ? (
+            <Tag color="green">Published</Tag>
+          ) : (
+            <Tag color="red">Draft</Tag>
+          )}
+        </>
+      );
+    },
+  },
+  {
+    title: "Created At",
+    dataIndex: "createdAt",
+    width: screens.xs ? "30%" : "25%",
+    ellipsis: true,
+    render: (text: string) => {
+      return (
+        <Typography.Text ellipsis>
+          {format(new Date(text), screens.xs ? "dd/MM/yy" : "dd/MM/yyyy HH:MM")}
+        </Typography.Text>
+      );
+    },
+  },
+];
 
 const ProductsPage = () => {
-
-    const screens = useBreakpoint();
+  const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
 
   const [queryParams, setQueryParams] = useState({
@@ -110,7 +145,7 @@ const ProductsPage = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["products",queryParams],
+    queryKey: ["products", queryParams],
     queryFn: getProducts,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -124,7 +159,7 @@ const ProductsPage = () => {
       }));
     }, 500);
   }, []);
-  
+
   const handleFilterChange = (changedFields: FieldData[]) => {
     // {
     // q: "Peprroni",
@@ -168,11 +203,11 @@ const ProductsPage = () => {
 
   return (
     <>
-        <Space
-         direction="vertical"
-         size={screens.xs ? "middle" : "large"}
-         style={{ width: "100%", overflow: "visible" }}
-        >
+      <Space
+        direction="vertical"
+        size={screens.xs ? "middle" : "large"}
+        style={{ width: "100%", overflow: "visible" }}
+      >
         <Breadcrumb
           separator={<RightOutlined />}
           items={BreadcrumbItems}
@@ -182,9 +217,8 @@ const ProductsPage = () => {
           }}
         />
 
-    <Form form={formfilter} onFieldsChange={handleFilterChange}>
-          <ProductsFilter
-          >
+        <Form form={formfilter} onFieldsChange={handleFilterChange}>
+          <ProductsFilter>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -201,45 +235,24 @@ const ProductsPage = () => {
 
         <div
           className="table-container"
-          style={{ width: "100%", overflowX: "auto", maxWidth: "100vw" }}
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            maxWidth: "100vw",
+            marginTop: screens.xs ? "8px" : "16px",
+          }}
         >
           <Table
             rowKey={"id"}
-            columns={[
-              ...getColumns(screens),
-              // {
-              //   title: "Action",
-              //   dataIndex: "action",
-              //   width: screens.xs ? 100 : "15%",
-              //   ellipsis: true,
-              //   render: (_: string, record: User) => {
-              //     return (
-              //       <Space>
-              //         <Button
-              //           type="link"
-              //           icon={<EditOutlined />}
-              //           onClick={() => {
-              //             setEditUser(record);
-              //           }}
-              //         />
-              //         <Button
-              //           type="link"
-              //           onClick={() => showDeleteModal(record)}
-              //           icon={<DeleteOutlined />}
-              //         />
-              //       </Space>
-              //     );
-              //   },
-              // },
-            ]}
+            columns={getColumns(screens)}
             dataSource={products?.data}
             loading={isFetching}
             scroll={{
-              x: screens.xs ? 550 : "100%",
+              x: screens.xs ? 800 : "100%",
               scrollToFirstRowOnChange: true,
             }}
             style={{
-              minWidth: screens.xs ? 550 : "auto",
+              minWidth: screens.xs ? 800 : "auto",
               whiteSpace: "nowrap",
             }}
             pagination={{
@@ -265,9 +278,9 @@ const ProductsPage = () => {
             size={screens.xs ? "small" : ("middle" as const)}
           />
         </div>
-        </Space>
+      </Space>
     </>
-  )
-}
+  );
+};
 
-export default ProductsPage
+export default ProductsPage;
