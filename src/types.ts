@@ -35,3 +35,11 @@ export interface ICategory {
     _id: string;
     name: string;
 }
+
+export interface Products {
+    name: string;
+    image: string;
+    description: string;
+    category: ICategory;
+    isPublished: boolean;
+}
