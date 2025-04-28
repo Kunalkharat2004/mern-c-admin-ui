@@ -1,5 +1,16 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Form, Select, Card, Space, Row, Grid, Col, Input, Switch, Typography } from "antd";
+import {
+  Form,
+  Select,
+  Card,
+  Space,
+  Row,
+  Grid,
+  Col,
+  Input,
+  Switch,
+  Typography,
+} from "antd";
 import { getAllCategories, getAllTenants } from "../../http/api";
 import { ICategory, Tenant } from "../../types";
 
@@ -7,21 +18,21 @@ const { useBreakpoint } = Grid;
 
 interface ProductsFilterProps {
   children?: React.ReactNode;
-//   onFilterChange: (FilterName: string, FilterValue: string) => void;
+  //   onFilterChange: (FilterName: string, FilterValue: string) => void;
 }
 
 const ProductsFilter = ({ children }: ProductsFilterProps) => {
   const screens = useBreakpoint();
 
-  const getCategories = async () =>{
-    const {data} = await getAllCategories();
+  const getCategories = async () => {
+    const { data } = await getAllCategories();
     return data;
-  }
+  };
 
-  const getRestaurants = async () =>{
-    const {data} = await getAllTenants(`currentPage=1&perPage=100`);
+  const getRestaurants = async () => {
+    const { data } = await getAllTenants(`currentPage=1&perPage=100`);
     return data;
-  }
+  };
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -30,7 +41,6 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
     staleTime: 1000 * 60 * 5,
   });
 
-
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
     queryFn: getRestaurants,
@@ -38,10 +48,9 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
     staleTime: 1000 * 60 * 5,
   });
 
-    
   return (
     <>
-         <Card>
+      <Card>
         <Row gutter={[16, 16]} justify="space-between" wrap>
           <Col xs={24} sm={24} md={16} lg={16}>
             <Space
@@ -49,59 +58,50 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               wrap
               direction={screens.xs ? "vertical" : "horizontal"}
               style={{ width: "100%" }}
+              align="center"
             >
-              <Form.Item name="q">
+              <Form.Item name="q" style={{ marginBottom: 0 }}>
                 <Input.Search
-                  onChange={(e) =>{}}
                   placeholder="Search Product"
                   allowClear
                   style={{ width: screens.xs ? "100%" : "auto" }}
                 />
               </Form.Item>
 
-              <Form.Item name="category">
+              <Form.Item name="categoryId" style={{ marginBottom: 0 }}>
                 <Select
                   placeholder="Select Category"
                   style={{ width: screens.xs ? "100%" : 150 }}
-                  onChange={(value) => {}}
                   allowClear
                 >
-                 {
-                    categories?.map((category: ICategory) => (
-                        <Select.Option key={category._id} value={category._id}>
-                        {category.name}
-                        </Select.Option>
-                    ))
-                 }
+                  {categories?.map((category: ICategory) => (
+                    <Select.Option key={category._id} value={category._id}>
+                      {category.name}
+                    </Select.Option>
+                  ))}
                 </Select>
-
               </Form.Item>
-              <Form.Item name="restaurant">
+
+              <Form.Item name="tenantId" style={{ marginBottom: 0 }}>
                 <Select
                   placeholder="Select restaurant"
                   style={{ width: screens.xs ? "100%" : 150 }}
-                  onChange={(value) => {}}
+                  allowClear
                 >
-                 {
-                    restaurants?.data?.map((restaurant: Tenant) => (
-                        <Select.Option key={restaurant.id} value={restaurant.id}>
-                        {restaurant.name}
-                        </Select.Option>
-                    ))
-                 }
+                  {restaurants?.data?.map((restaurant: Tenant) => (
+                    <Select.Option key={restaurant.id} value={restaurant.id}>
+                      {restaurant.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
 
-              <Form.Item name="isPublished">
-                <Switch 
-                    defaultChecked
-                    onChange={(value) => {}}
-                />
-                <Typography.Text style={{ marginLeft: "8px" }}>
-                  Show Published Products
-                </Typography.Text>
-              </Form.Item>
-
+              <Space align="center">
+                <Form.Item name="isPublished" style={{ marginBottom: 0 }}>
+                  <Switch defaultChecked={false} />
+                </Form.Item>
+                <Typography.Text>Show Published Products</Typography.Text>
+              </Space>
             </Space>
           </Col>
           <Col
@@ -120,7 +120,7 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
         </Row>
       </Card>
     </>
-  )
-}
+  );
+};
 
-export default ProductsFilter
+export default ProductsFilter;

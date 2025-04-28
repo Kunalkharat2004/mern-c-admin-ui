@@ -1,12 +1,13 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons"
-import { Breadcrumb, Button, Form, Grid, Image, Space, Table, Tag,Typography } from "antd"
+import { Breadcrumb, Button, Form, Grid, Image, Result, Space, Table, Tag,Typography } from "antd"
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getAllProducts } from "../../http/api";
-import { useState } from "react";
-import { Products } from "../../types";
+import { useMemo, useState } from "react";
+import { FieldData, Products } from "../../types";
 import { format } from "date-fns";
+import { debounce } from "lodash";
 
 const { useBreakpoint } = Grid;
 
@@ -88,15 +89,20 @@ const ProductsPage = () => {
   const [formfilter] = Form.useForm();
 
   const [queryParams, setQueryParams] = useState({
-    currentPage: 1,
-    perPage: 5,
+    page: 1,
+    limit: 10,
   });
 
-  const getProducts = async()=>{
-    const queryString = "currentPage=1&perPage=100";
-    const {data} = await getAllProducts(queryString);
+  const getProducts = async () => {
+    const filteredValues = Object.fromEntries(
+      Object.entries(queryParams).filter((item) => !!item[1])
+    );
+    const queryParamasString = new URLSearchParams(
+      filteredValues as unknown as Record<string, string>
+    ).toString();
+    const { data } = await getAllProducts(queryParamasString);
     return data;
-  }
+  };
 
   const {
     data: products,
@@ -104,14 +110,61 @@ const ProductsPage = () => {
     isError,
     refetch,
   } = useQuery({
-    // queryKey: ["users", queryParams],
-    queryKey: ["products"],
+    queryKey: ["products",queryParams],
     queryFn: getProducts,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+  const debounceQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({
+        ...prev,
+        q: value,
+        page: 1,
+      }));
+    }, 500);
+  }, []);
+  
+  const handleFilterChange = (changedFields: FieldData[]) => {
+    // {
+    // q: "Peprroni",
+    // isPublished: true
+    // }
+    console.log("Changed fields: ", changedFields);
 
-  console.log("Products",products);
+    const filter = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, curr) => {
+        return { ...acc, ...curr };
+      }, {});
+
+    if ("q" in filter) {
+      debounceQUpdate(filter.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...filter,
+        page: 1,
+      }));
+    }
+  };
+
+  if (isError) {
+    return (
+      <Result
+        status="500"
+        title="Something went wrong"
+        subTitle="Sorry, we encountered an error while fetching the data."
+        extra={[
+          <Button type="primary" key="retry" onClick={() => refetch()}>
+            Retry
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   return (
     <>
@@ -129,7 +182,7 @@ const ProductsPage = () => {
           }}
         />
 
-    <Form form={formfilter} >
+    <Form form={formfilter} onFieldsChange={handleFilterChange}>
           <ProductsFilter
           >
             <Button
@@ -190,14 +243,14 @@ const ProductsPage = () => {
               whiteSpace: "nowrap",
             }}
             pagination={{
-              current: queryParams.currentPage,
-              pageSize: queryParams.perPage,
+              current: queryParams.page,
+              pageSize: queryParams.limit,
               total: products?.total,
               onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
                     ...prev,
-                    currentPage: page,
+                    page: page,
                   };
                 });
               },
