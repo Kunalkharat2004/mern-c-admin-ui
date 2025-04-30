@@ -141,7 +141,7 @@ const ProductForm = () => {
                   }
                 >
                  {categories?.data.map((category: ICategory) => (
-                          <Select.Option key={category._id} value={category._id}>
+                          <Select.Option key={category._id} value={JSON.stringify(category)}>
                             {category.name}
                           </Select.Option>
                         ))}
@@ -196,7 +196,7 @@ const ProductForm = () => {
 
      {
         selectedCategory && (
-            <Pricing/>
+            <Pricing selectedCategory={selectedCategory}/>
         )
      }
      {
