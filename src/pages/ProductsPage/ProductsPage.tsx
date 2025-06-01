@@ -14,14 +14,22 @@ import {
 } from "antd";
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getAllProducts } from "../../http/api";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createProductApi, getAllProducts } from "../../http/api";
 import { useMemo, useState } from "react";
-import { FieldData, Products } from "../../types";
+import {
+  CreateProductResponse,
+  FieldData,
+  IAttributeConfigurationValue,
+  IPriceConfiguration,
+  Products,
+} from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import ProductForm from "./form/ProductForm";
+import { useNotification } from "../../context/NotificationContext";
+import { makeFormData } from "./helper";
 
 const { useBreakpoint } = Grid;
 
@@ -123,11 +131,13 @@ const getColumns = (screens: Record<string, boolean>) => [
 ];
 
 const ProductsPage = () => {
+  console.log("ProductsPage Rendered");
   const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
   const [form] = Form.useForm();
 
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
+  const notify = useNotification();
   const [queryParams, setQueryParams] = useState({
     page: 1,
     limit: 10,
@@ -193,9 +203,82 @@ const ProductsPage = () => {
     }
   };
 
-  const handleOnSubmit = ()=>{
-    console.log("submitting...");
+  const createProduct = async (productData: FormData):Promise<CreateProductResponse> => {
+    const {data} = await createProductApi(productData);
+    console.log("data", data);
+    return data;
   }
+
+  const queryClient = useQueryClient();
+  const { mutate: productMutate, isPending: createProductMutationPending } = useMutation({
+    mutationKey: ["createProduct"],
+    mutationFn: createProduct,
+    onSuccess: () => {
+      setDrawerOpen(false);
+      form.resetFields();
+      notify.success("Product created successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+
+    onError: () => {
+      setDrawerOpen(false);
+      form.resetFields();
+      notify.error("Something went wrong");
+    },
+  });
+
+  const handleOnSubmit = async() => {
+  
+    try {
+       await form.validateFields();
+      const values = form.getFieldsValue();
+      console.log("values", values);
+
+       const priceConfiguration: IPriceConfiguration = Object.entries(
+         values.priceConfiguration
+       ).reduce((acc: IPriceConfiguration, [key, option]) => {
+         const parsedKey = JSON.parse(key);
+         const { configurationKey, priceType } = parsedKey;
+         acc[configurationKey] = {
+           priceType: priceType,
+           availableOptions: option as Map<string, number>,
+         };
+
+         return acc;
+       }, {});
+
+       const attributeConfiguration: IAttributeConfigurationValue[] =
+         Object.entries(values.attributeConfiguration).reduce(
+           (acc: IAttributeConfigurationValue[], [name, value]) => {
+             const obj: IAttributeConfigurationValue = {
+               name: name,
+               value: value as string,
+             };
+             acc.push(obj);
+             return acc;
+           },
+           []
+        );
+      
+      const categoryId = JSON.parse(values.categoryId)._id  
+
+      const productData = {
+        ...values,
+        image: values.image,
+        categoryId: categoryId,
+        priceConfiguration: priceConfiguration,
+        attributeConfiguration: attributeConfiguration,
+        isPublished: values.isPublished ? true : false,
+      }
+      console.log("productData", productData);
+      const formData = makeFormData(productData);
+      productMutate(formData);
+
+    } catch (err) {
+      console.error("Form validation or submission error:", err);
+      notify.error("Something went wrong")
+   }
+  };
 
   if (isError) {
     return (
@@ -245,7 +328,7 @@ const ProductsPage = () => {
             </Button>
           </ProductsFilter>
         </Form>
-              
+
         <Drawer
           title={"Create a new product"}
           width={screens.xs ? "100%" : 720}
@@ -277,7 +360,7 @@ const ProductsPage = () => {
               padding: screens.xs ? "8px" : "24px",
             }}
           >
-            <ProductForm/>
+            <ProductForm />
           </Form>
         </Drawer>
         <div
@@ -331,3 +414,5 @@ const ProductsPage = () => {
 };
 
 export default ProductsPage;
+
+

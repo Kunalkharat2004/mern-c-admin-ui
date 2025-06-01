@@ -54,7 +54,7 @@ const getColumns = (screens: Record<string, boolean>) => [
     dataIndex: "firstName",
     width: screens.xs ? 150 : "25%",
     ellipsis: true,
-    render: (text: string, record: { firstName: string; lastName: string }) => {
+    render: (_: string, record: { firstName: string; lastName: string }) => {
       return `${record.firstName} ${record.lastName}`
         .split(" ")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -326,7 +326,13 @@ const UsersPage = () => {
           open={drawerOpen}
           extra={
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                setEditUser(null);
+                form.resetFields();
+                setDrawerOpen(false)
+              }}>
+                Cancel
+              </Button>
               <Button onClick={handleOnSubmit} type="primary">
                 Submit
               </Button>

@@ -23,6 +23,7 @@ interface ProductsFilterProps {
 }
 
 const ProductsFilter = ({ children }: ProductsFilterProps) => {
+  console.log("ProductsFilter rendered");
   const screens = useBreakpoint();
 
   const getCategories = async () => {

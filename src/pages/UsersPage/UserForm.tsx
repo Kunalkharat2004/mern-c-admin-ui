@@ -98,7 +98,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your first name!",
+                    message: "Please input first name!",
                   },
                 ]}
               >
@@ -114,7 +114,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your last name!",
+                    message: "Please input last name!",
                   },
                 ]}
               >
@@ -130,7 +130,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your email!",
+                    message: "Please input email!",
                   },
                   {
                     type: "email",

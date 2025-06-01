@@ -23,7 +23,7 @@ const RestaurantForm = () => {
             },
           ]}
         >
-          <Input allowClear style={{ width: screens.xs ? "100%" : "80%" }} />
+          <Input allowClear maxLength={100} style={{ width: screens.xs ? "100%" : "80%" }} />
         </Form.Item>
 
         <Form.Item
@@ -38,6 +38,7 @@ const RestaurantForm = () => {
         >
           <TextArea
             rows={screens.xs ? 2 : 4}
+            maxLength={200}
             allowClear
             style={{ width: screens.xs ? "100%" : "80%",
               resize:"none"

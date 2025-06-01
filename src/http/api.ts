@@ -33,3 +33,11 @@ export const getManagerCount = (id:string)=> api.get(`${AUTH_SERVICE_URL}/tenant
 export const getAllCategories = ()=> api.get(`${CATALOG_SERVICE_URL}/api/categories`);
 
 export const getAllProducts = (queryParamsString: string)=> api.get(`${CATALOG_SERVICE_URL}/api/products?${queryParamsString}`);
+
+export const createProductApi = (productData: FormData) => api.post(`${CATALOG_SERVICE_URL}/api/products`, productData,
+    {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        }
+    }
+);

@@ -1,12 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Card, Col, Form, Grid, Input, Row, Select, Space, Switch, Typography, Upload } from "antd";
+import { Card, Col, Form, Grid, Input, Row, Select, Space, Switch, Typography } from "antd";
 import { getAllCategories, getAllTenants } from "../../../http/api";
 import { useMemo, useState } from "react";
 import { ICategory, Tenant } from "../../../types";
-import { PlusOutlined } from "@ant-design/icons";
 import { debounce } from "lodash";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
+import ProductImageUpload from "./ProductImageUpload";
 
 const { useBreakpoint } = Grid;
 
@@ -18,10 +18,12 @@ interface QueryParams {
 
 const ProductForm = () => {
   const screens = useBreakpoint();
+ 
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
     limit: 5,
   });
+
 
   const getTenants = async () => {
     const params = { ...queryParams };
@@ -85,6 +87,7 @@ const ProductForm = () => {
     }
   };
 
+
   const selectedCategory = Form.useWatch("categoryId");
 
   return (
@@ -140,11 +143,14 @@ const ProductForm = () => {
                       : false
                   }
                 >
-                 {categories?.data.map((category: ICategory) => (
-                          <Select.Option key={category._id} value={JSON.stringify(category)}>
-                            {category.name}
-                          </Select.Option>
-                        ))}
+                  {categories?.data.map((category: ICategory) => (
+                    <Select.Option
+                      key={category._id}
+                      value={JSON.stringify(category)}
+                    >
+                      {category.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -163,6 +169,7 @@ const ProductForm = () => {
                 <Input.TextArea
                   style={{ resize: "none" }}
                   rows={screens.xs ? 2 : 4}
+                  maxLength={200}
                   allowClear
                 />
               </Form.Item>
@@ -173,37 +180,13 @@ const ProductForm = () => {
         <Card title="Product Image">
           <Row gutter={[20, 20]}>
             <Col xs={24} sm={24} md={12} lg={12}>
-              <Form.Item
-                name="image"
-                rules={[
-                  {
-                    required: true,
-                    message: "Image is required",
-                  },
-                ]}
-              >
-           <Upload
-        name="avatar"
-        listType="picture-card"
-        className="avatar-uploader"
-      >
-        <PlusOutlined/>
-      </Upload>
-              </Form.Item>
+                <ProductImageUpload/>
             </Col>
           </Row>
         </Card>
 
-     {
-        selectedCategory && (
-            <Pricing selectedCategory={selectedCategory}/>
-        )
-     }
-     {
-        selectedCategory && (
-            <Attributes selectedCategory={selectedCategory}/>
-        )
-     }
+        {selectedCategory && <Pricing selectedCategory={selectedCategory} />}
+        {selectedCategory && <Attributes selectedCategory={selectedCategory} />}
 
         <Card title="Tenant Info">
           <Row>
@@ -218,7 +201,7 @@ const ProductForm = () => {
                   },
                 ]}
               >
-                 <Select
+                <Select
                   showSearch
                   optionFilterProp="children"
                   onSearch={handleSearch}
@@ -235,11 +218,11 @@ const ProductForm = () => {
                       : false
                   }
                 >
-                 {tenant?.data.map((item: Tenant) => (
-                          <Select.Option key={item._id} value={item._id}>
-                            {item.name}
-                          </Select.Option>
-                        ))}
+                  {tenant?.data.map((item: Tenant) => (
+                    <Select.Option key={item.id} value={item.id}>
+                      {item.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -247,31 +230,27 @@ const ProductForm = () => {
         </Card>
 
         <Card title="Other properties">
-            <Row>
-                <Col>
-                    <Space>
-                    <Form.Item
-                        name="isPublished"
-                        valuePropName="checked"
-                        >
-
-                    <Switch
+          <Row>
+            <Col>
+              <Space>
+                <Form.Item name="isPublished" valuePropName="checked">
+                  <Switch
                     defaultChecked={false}
                     checkedChildren="Yes"
                     unCheckedChildren="No"
-                    />
-                        </Form.Item>
-                    <Typography.Text 
-                    style={{
-                        display:"block",
-                        marginBottom:"24px",
-                    }}
-                    >
-                        Publish
-                        </Typography.Text>
-                    </Space>
-                </Col>
-            </Row>
+                  />
+                </Form.Item>
+                <Typography.Text
+                  style={{
+                    display: "block",
+                    marginBottom: "24px",
+                  }}
+                >
+                  Publish
+                </Typography.Text>
+              </Space>
+            </Col>
+          </Row>
         </Card>
       </Space>
     </>

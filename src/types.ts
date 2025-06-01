@@ -34,16 +34,20 @@ export interface FieldData {
 export interface IPriceConfiguration {
     [key: string]:{
        priceType: "base" | "additional",
-       availableOptions: Array<string>;
+       availableOptions: Array<string> | Map<string,number>;
     }
    }
-   
 export interface IAttributeConfiguration {
        name: string,
        widgetType: "radio" | "switch",
        defaultValue: string,
        availableOptions: Array<string>
-   }
+}
+
+export interface IAttributeConfigurationValue { 
+    name: string;
+    value: string;
+}
    
 export interface ICategory {
         _id: string;
@@ -58,4 +62,17 @@ export interface Products {
     description: string;
     category: ICategory;
     isPublished: boolean;
+    tenantId: string;
+    categoryId: string;
+    priceConfiguration: IPriceConfiguration;
+    attributeConfiguration: Array<IAttributeConfigurationValue>;
+}
+
+export interface CreateProduct extends Omit<Products, 'image'> { 
+    image: {file: File};
+}
+
+export interface CreateProductResponse {
+    msg: string;
+    _id: string;
 }
