@@ -1,15 +1,32 @@
 import { Card, Col, Form, Radio, Row, Space, Switch } from "antd";
 import { ICategory } from "../../../types";
+import { getSingleCategory } from "../../../http/api";
+import { useQuery } from "@tanstack/react-query";
 
 interface AttributesProps {
   selectedCategory: string | null;
 }
 
 const Attributes = ({ selectedCategory }: AttributesProps) => {
-  const category: ICategory | null = selectedCategory
-    ? JSON.parse(selectedCategory)
-    : null;
-  if (!category) return null;
+  const categoryId: string | null = selectedCategory;
+
+  const singleCategory = async () => {
+    if (!categoryId) {
+      return null;
+    }
+    const { data } = await getSingleCategory(categoryId);
+    return data;
+  };
+
+  const { data: category } = useQuery<ICategory>({
+    queryKey: ["category", categoryId],
+    queryFn: singleCategory,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  if (!category) {
+    return <Card title="Product Pricing">No pricing configuration found.</Card>;
+  }
 
   return (
     <Card title="Product Attributes">

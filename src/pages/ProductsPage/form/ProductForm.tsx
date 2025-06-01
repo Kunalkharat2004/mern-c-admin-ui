@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Card, Col, Form, Grid, Input, Row, Select, Space, Switch, Typography } from "antd";
+import { Card, Col, Form, FormInstance, Grid, Input, Row, Select, Space, Switch, Typography } from "antd";
 import { getAllCategories, getAllTenants } from "../../../http/api";
 import { useMemo, useState } from "react";
 import { ICategory, Tenant } from "../../../types";
@@ -17,8 +17,9 @@ interface QueryParams {
   q?: string;
 }
 
-const ProductForm = () => {
+const ProductForm = ({form}:{form: FormInstance}) => {
   const screens = useBreakpoint();
+  const initialImage = form.getFieldValue("image") || null;
  
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
@@ -146,10 +147,7 @@ const ProductForm = () => {
                   }
                 >
                   {categories?.data.map((category: ICategory) => (
-                    <Select.Option
-                      key={category._id}
-                      value={JSON.stringify(category)}
-                    >
+                    <Select.Option key={category._id} value={category._id}>
                       {category.name}
                     </Select.Option>
                   ))}
@@ -182,7 +180,7 @@ const ProductForm = () => {
         <Card title="Product Image">
           <Row gutter={[20, 20]}>
             <Col xs={24} sm={24} md={12} lg={12}>
-              <ProductImageUpload />
+              <ProductImageUpload initialImage={initialImage} />
             </Col>
           </Row>
         </Card>

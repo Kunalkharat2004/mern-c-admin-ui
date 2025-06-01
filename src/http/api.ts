@@ -41,3 +41,5 @@ export const createProductApi = (productData: FormData) => api.post(`${CATALOG_S
         }
     }
 );
+
+export const getSingleCategory = (categoryId: string) => api.get(`${CATALOG_SERVICE_URL}/api/categories/${categoryId}`);

@@ -1,4 +1,4 @@
-import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
 import {
   Breadcrumb,
   Button,
@@ -16,7 +16,7 @@ import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createProductApi, getAllProducts } from "../../http/api";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CreateProductResponse,
   FieldData,
@@ -128,10 +128,12 @@ const getColumns = (screens: Record<string, boolean>) => [
       );
     },
   },
+  {
+
+  }
 ];
 
 const ProductsPage = () => {
-  console.log("ProductsPage Rendered");
   const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
   const [form] = Form.useForm();
@@ -144,6 +146,8 @@ const ProductsPage = () => {
     tenantId: user?.role === "manager" ? user.tenant?.id : undefined,
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Products | null>(null);
+
 
   const getProducts = async () => {
     const filteredValues = Object.fromEntries(
@@ -167,6 +171,59 @@ const ProductsPage = () => {
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  
+  useEffect(() => {
+    if (selectedProduct) {
+      setDrawerOpen(true);
+      console.log("selectedProduct", selectedProduct);
+
+      // From this:
+      // priceConfiguration: {
+      //    Crust: {priceType: 'additional', availableOptions: {…}, _id: '6807b94847ee65d529204faa'}
+      //    Size: {priceType: 'base', availableOptions: {…}, _id: '6807b94847ee65d529204fa9'}
+      // }
+
+      // To this:
+      //       priceConfiguration: {
+      //            { "configurationKey": "Crust", "priceType": "additional" }: { Thin: 44, Thick: 44 }
+      // {"configurationKey":"Size","priceType":"base"}: {Small: 44, Medium: 44, Large: 44}
+    // }
+
+      const priceConfiguration = Object.entries(
+        selectedProduct.priceConfiguration
+      ).reduce((acc, [key, value]) => {
+        const stringifiedKey = JSON.stringify({
+          configurationKey: key,
+          priceType: value.priceType,
+        });
+
+        return {
+          ...acc,
+          [stringifiedKey]: value.availableOptions,
+        };
+      }, {});
+
+      const attributeConfiguration =
+        selectedProduct.attributeConfiguration.reduce((acc, curr) => {
+          return {
+            ...acc,
+            [curr.name]: curr.value,
+          };
+        }, {});
+      
+      console.log("priceConfiguration", priceConfiguration);
+      console.log("attributeConfiguration", attributeConfiguration);
+      
+      form.setFieldsValue({
+        ...selectedProduct,
+        priceConfiguration: priceConfiguration,
+        attributeConfiguration: attributeConfiguration,
+        categoryId: selectedProduct.category._id,
+        })
+    }
+  }, [selectedProduct, form]);
+
   const debounceQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {
       setQueryParams((prev) => ({
@@ -260,7 +317,7 @@ const ProductsPage = () => {
            []
         );
       
-      const categoryId = JSON.parse(values.categoryId)._id  
+      const categoryId = values.categoryId;  
 
       const productData = {
         ...values,
@@ -331,24 +388,33 @@ const ProductsPage = () => {
         </Form>
 
         <Drawer
-          title={"Create a new product"}
+          title={selectedProduct ? "Update Product" : "Create Product"}
+          maskClosable={true}
           width={screens.xs ? "100%" : 720}
           onClose={() => {
             console.log("Drawer Closed");
             setDrawerOpen(false);
+            setSelectedProduct(null);
             form.resetFields();
           }}
           destroyOnClose={true}
           open={drawerOpen}
           extra={
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                setDrawerOpen(false);
+                setSelectedProduct(null);
+                notify.info(selectedProduct ? "Product update cancelled" : "Product creation cancelled");
+                form.resetFields();
+              }}>Cancel</Button>
               <Button
                 onClick={handleOnSubmit}
                 loading={createProductMutationPending}
                 type="primary"
               >
-                Submit
+                {
+                  selectedProduct ? "Update" : "Submit"
+                }
               </Button>
             </Space>
           }
@@ -365,7 +431,7 @@ const ProductsPage = () => {
               padding: screens.xs ? "8px" : "24px",
             }}
           >
-            <ProductForm />
+            <ProductForm form={form} />
           </Form>
         </Drawer>
         <div
@@ -379,7 +445,34 @@ const ProductsPage = () => {
         >
           <Table
             rowKey={"id"}
-            columns={getColumns(screens)}
+            columns={[
+              ...getColumns(screens),
+              {
+                title: "Action",
+                dataIndex: "action",
+                width: screens.xs ? 100 : "15%",
+                ellipsis: true,
+                render: (_: string, record: Products) => {
+                  return (
+                    <Space>
+                      <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setSelectedProduct(record);
+                          setDrawerOpen(true);
+                        }}
+                      />
+                      <Button
+                        type="link"
+                        onClick={() => { }}
+                        icon={<DeleteOutlined />}
+                      />
+                    </Space>
+                  );
+                },
+              },
+            ]}
             dataSource={products?.data}
             loading={isFetching}
             scroll={{

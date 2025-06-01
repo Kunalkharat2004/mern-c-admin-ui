@@ -1,18 +1,34 @@
 import { Card, Col, Form, InputNumber, Row, Space, Typography } from "antd";
 import { ICategory } from "../../../types";
+import { useQuery } from "@tanstack/react-query";
+import { getSingleCategory } from "../../../http/api";
 
 type PricingProps = {
   selectedCategory: string | null;
 };
 
 const Pricing = ({ selectedCategory }: PricingProps) => {
-  const category: ICategory | null = selectedCategory
-    ? JSON.parse(selectedCategory)
-    : null;
-  console.log("category", category);
-  if (!category) return null;
-  const b = Object.entries(category?.priceConfiguration);
-  console.log("b", b);
+
+  const categoryId: string | null = selectedCategory;
+
+  const singleCategory = async () => {
+    if (!categoryId) {
+      return null;
+    }
+    const { data } = await getSingleCategory(categoryId);
+    return data;
+  };
+
+   const { data: category } = useQuery<ICategory>({
+     queryKey: ["category", categoryId],
+     queryFn: singleCategory,
+     staleTime: 1000 * 60 * 5, // 5 minutes
+   });
+
+  if (!category) {
+    return <Card title="Product Pricing">No pricing configuration found.</Card>;
+  }
+ 
   return (
     <Card title="Product Pricing">
       {Object.entries(category?.priceConfiguration).map(
