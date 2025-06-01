@@ -51,3 +51,5 @@ export const updateProductApi = (productData: FormData, id: string) => api.put(`
         }
     }
 );
+
+export const deleteProduct = (id: string) => api.delete(`${CATALOG_SERVICE_URL}/api/products/${id}`);

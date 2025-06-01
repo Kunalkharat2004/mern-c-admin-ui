@@ -6,6 +6,7 @@ import {
   Form,
   Grid,
   Image,
+  Modal,
   Result,
   Space,
   Table,
@@ -15,7 +16,7 @@ import {
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProductApi, getAllProducts, updateProductApi } from "../../http/api";
+import { createProductApi, deleteProduct, getAllProducts, updateProductApi } from "../../http/api";
 import { useEffect, useMemo, useState } from "react";
 import {
   CreateProductResponse,
@@ -147,7 +148,8 @@ const ProductsPage = () => {
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Products | null>(null);
-
+ const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+ const [productToDelete, setProductToDelete] = useState<Products | null>(null);
 
   const getProducts = async () => {
     const filteredValues = Object.fromEntries(
@@ -347,6 +349,28 @@ const ProductsPage = () => {
    }
   };
 
+  const handleDeleteProduct = async (id: string | undefined) => {
+    if (!id) {
+      notify.error("Invalid product ID");
+      return;
+    }
+    try {
+      await deleteProduct(id);
+      notify.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      notify.error("Something went wrong");
+    }
+  };
+
+    const showDeleteModal = (product: Products) => {
+      setProductToDelete(product);
+      setDeleteModalOpen(true);
+    };
+
   if (isError) {
     return (
       <Result
@@ -410,20 +434,26 @@ const ProductsPage = () => {
           open={drawerOpen}
           extra={
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => {
-                setDrawerOpen(false);
-                setSelectedProduct(null);
-                notify.info(selectedProduct ? "Product update cancelled" : "Product creation cancelled");
-                form.resetFields();
-              }}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  setDrawerOpen(false);
+                  setSelectedProduct(null);
+                  notify.info(
+                    selectedProduct
+                      ? "Product update cancelled"
+                      : "Product creation cancelled"
+                  );
+                  form.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 onClick={handleOnSubmit}
                 loading={createProductMutationPending}
                 type="primary"
               >
-                {
-                  selectedProduct ? "Update" : "Submit"
-                }
+                {selectedProduct ? "Update" : "Submit"}
               </Button>
             </Space>
           }
@@ -474,7 +504,9 @@ const ProductsPage = () => {
                       />
                       <Button
                         type="link"
-                        onClick={() => { }}
+                        onClick={() => {
+                          showDeleteModal(record);
+                        }}
                         icon={<DeleteOutlined />}
                       />
                     </Space>
@@ -515,6 +547,27 @@ const ProductsPage = () => {
             size={screens.xs ? "small" : ("middle" as const)}
           />
         </div>
+
+        <Modal
+          title="Delete Product"
+          open={deleteModalOpen}
+          onOk={() =>
+            productToDelete?._id && handleDeleteProduct(productToDelete._id)
+          }
+          onCancel={() => {
+            setDeleteModalOpen(false);
+            setProductToDelete(null);
+          }}
+          okText="Delete"
+          okButtonProps={{ danger: true }}
+        >
+          <p>Are you sure you want to delete this product?</p>
+          {productToDelete && (
+            <p>
+              <strong>Product:</strong> {productToDelete.name}{" "}
+            </p>
+          )}
+        </Modal>
       </Space>
     </>
   );
