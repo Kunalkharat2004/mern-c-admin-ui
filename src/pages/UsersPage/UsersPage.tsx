@@ -301,6 +301,8 @@ const UsersPage = () => {
               icon={<PlusOutlined />}
               onClick={() => {
                 setDrawerOpen(true);
+                setEditUser(null);
+                form.resetFields();
               }}
               style={{
                 width: screens.xs ? "100%" : "auto",
