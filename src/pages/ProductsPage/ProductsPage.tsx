@@ -15,7 +15,7 @@ import {
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProductApi, getAllProducts } from "../../http/api";
+import { createProductApi, getAllProducts, updateProductApi } from "../../http/api";
 import { useEffect, useMemo, useState } from "react";
 import {
   CreateProductResponse,
@@ -106,7 +106,7 @@ const getColumns = (screens: Record<string, boolean>) => [
     render: (_: boolean, record: Products) => {
       return (
         <>
-          {record.isPublished ? (
+          {record.isPublished === true ? (
             <Tag color="green">Published</Tag>
           ) : (
             <Tag color="red">Draft</Tag>
@@ -260,10 +260,19 @@ const ProductsPage = () => {
     }
   };
 
-  const createProduct = async (productData: FormData):Promise<CreateProductResponse> => {
-    const {data} = await createProductApi(productData);
-    console.log("data", data);
-    return data;
+  const createProduct = async (productData: FormData): Promise<CreateProductResponse> => {
+    if (selectedProduct) { 
+      // edit mode
+      const { data } = await updateProductApi(
+        productData,
+        selectedProduct._id, 
+      )
+      return data;
+    } else {
+      const {data} = await createProductApi(productData);
+      console.log("data", data);
+      return data;
+    }
   }
 
   const queryClient = useQueryClient();
@@ -273,7 +282,7 @@ const ProductsPage = () => {
     onSuccess: () => {
       setDrawerOpen(false);
       form.resetFields();
-      notify.success("Product created successfully");
+      notify.success(selectedProduct ? "Product updated successfully" : "Product created successfully");
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
 

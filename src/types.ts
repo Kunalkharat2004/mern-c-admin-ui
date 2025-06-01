@@ -57,6 +57,7 @@ export interface ICategory {
    }
 
 export interface Products {
+    _id: string;
     name: string;
     image: string;
     description: string;
