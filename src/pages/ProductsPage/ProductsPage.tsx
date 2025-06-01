@@ -342,7 +342,11 @@ const ProductsPage = () => {
           extra={
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
               <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
-              <Button onClick={handleOnSubmit} type="primary">
+              <Button
+                onClick={handleOnSubmit}
+                loading={createProductMutationPending}
+                type="primary"
+              >
                 Submit
               </Button>
             </Space>
