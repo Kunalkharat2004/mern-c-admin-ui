@@ -7,6 +7,7 @@ import { debounce } from "lodash";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
 import ProductImageUpload from "./ProductImageUpload";
+import { useAuthStore } from "../../../store";
 
 const { useBreakpoint } = Grid;
 
@@ -89,6 +90,7 @@ const ProductForm = () => {
 
 
   const selectedCategory = Form.useWatch("categoryId");
+  const { user} = useAuthStore();
 
   return (
     <>
@@ -180,7 +182,7 @@ const ProductForm = () => {
         <Card title="Product Image">
           <Row gutter={[20, 20]}>
             <Col xs={24} sm={24} md={12} lg={12}>
-                <ProductImageUpload/>
+              <ProductImageUpload />
             </Col>
           </Row>
         </Card>
@@ -188,46 +190,48 @@ const ProductForm = () => {
         {selectedCategory && <Pricing selectedCategory={selectedCategory} />}
         {selectedCategory && <Attributes selectedCategory={selectedCategory} />}
 
-        <Card title="Tenant Info">
-          <Row>
-            <Col span={24}>
-              <Form.Item
-                label="Select Tenant"
-                name="tenantId"
-                rules={[
-                  {
-                    required: true,
-                    message: "Tenant is required",
-                  },
-                ]}
-              >
-                <Select
-                  showSearch
-                  optionFilterProp="children"
-                  onSearch={handleSearch}
-                  loading={!tenant?.data}
-                  allowClear
-                  notFoundContent={
-                    tenant?.data?.length === 0 ? "No tenant found" : null
-                  }
-                  filterOption={(input, option) =>
-                    option?.children
-                      ? String(option.children)
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      : false
-                  }
+        {user?.role === "admin" && (
+          <Card title="Tenant Info">
+            <Row>
+              <Col span={24}>
+                <Form.Item
+                  label="Select Tenant"
+                  name="tenantId"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Tenant is required",
+                    },
+                  ]}
                 >
-                  {tenant?.data.map((item: Tenant) => (
-                    <Select.Option key={item.id} value={item.id}>
-                      {item.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Card>
+                  <Select
+                    showSearch
+                    optionFilterProp="children"
+                    onSearch={handleSearch}
+                    loading={!tenant?.data}
+                    allowClear
+                    notFoundContent={
+                      tenant?.data?.length === 0 ? "No tenant found" : null
+                    }
+                    filterOption={(input, option) =>
+                      option?.children
+                        ? String(option.children)
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        : false
+                    }
+                  >
+                    {tenant?.data.map((item: Tenant) => (
+                      <Select.Option key={item.id} value={item.id}>
+                        {item.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        )}
 
         <Card title="Other properties">
           <Row>

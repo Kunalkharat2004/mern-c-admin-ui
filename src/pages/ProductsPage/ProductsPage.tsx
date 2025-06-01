@@ -266,6 +266,7 @@ const ProductsPage = () => {
         ...values,
         image: values.image,
         categoryId: categoryId,
+        tenantId: user?.role === "manager" ? user.tenant?.id : values.tenantId,
         priceConfiguration: priceConfiguration,
         attributeConfiguration: attributeConfiguration,
         isPublished: values.isPublished ? true : false,
