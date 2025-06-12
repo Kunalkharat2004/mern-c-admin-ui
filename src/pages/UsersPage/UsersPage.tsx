@@ -101,8 +101,8 @@ const UsersPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [queryParams, setQueryParams] = useState({
-    currentPage: 1,
-    perPage: 5,
+    page: 1,
+    limit: 5,
   });
 
   const getUsers = async () => {
@@ -207,7 +207,7 @@ const UsersPage = () => {
       setQueryParams((prev) => ({
         ...prev,
         q: value,
-        currentPage: 1,
+        page: 1,
       }));
     }, 500);
   }, []);
@@ -233,7 +233,7 @@ const UsersPage = () => {
       setQueryParams((prev) => ({
         ...prev,
         ...filter,
-        currentPage: 1,
+        page: 1,
       }));
     }
   };
@@ -328,11 +328,13 @@ const UsersPage = () => {
           open={drawerOpen}
           extra={
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => {
-                setEditUser(null);
-                form.resetFields();
-                setDrawerOpen(false)
-              }}>
+              <Button
+                onClick={() => {
+                  setEditUser(null);
+                  form.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
                 Cancel
               </Button>
               <Button onClick={handleOnSubmit} type="primary">
@@ -404,14 +406,14 @@ const UsersPage = () => {
               whiteSpace: "nowrap",
             }}
             pagination={{
-              current: queryParams.currentPage,
-              pageSize: queryParams.perPage,
+              current: queryParams.page,
+              pageSize: queryParams.limit,
               total: users?.total,
               onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
                     ...prev,
-                    currentPage: page,
+                    page: page,
                   };
                 });
               },

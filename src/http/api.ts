@@ -13,7 +13,9 @@ export const logout = () => api.post(`${AUTH_SERVICE_URL}/auth/logout`);
 
 export const getAllUsers = (queryParamasString: string)=> api.get(`${AUTH_SERVICE_URL}/users?${queryParamasString}`);
 
-export const getAllTenants = (queryParamsString: string)=> api.get(`${AUTH_SERVICE_URL}/tenant?${queryParamsString}`);
+export const getAllTenants = (queryParamsString: string) => api.get(`${AUTH_SERVICE_URL}/tenant?${queryParamsString}`);
+
+export const getTenantById = (id: string) => api.get(`${AUTH_SERVICE_URL}/tenant/${id}`);
 
 export const createUser = (userData: User)=> api.post(`${AUTH_SERVICE_URL}/users`, userData);
 

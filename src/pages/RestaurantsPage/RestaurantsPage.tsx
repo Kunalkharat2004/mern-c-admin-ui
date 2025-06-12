@@ -79,7 +79,11 @@ const getColumns = (screens: Record<string, boolean>) => [
     width: screens.xs ? 150 : "30%",
     ellipsis: true,
     render: (text: string) => {
-      return <Typography.Text>{format(new Date(text),"dd/MM/yyyy HH:MM")}</Typography.Text>;
+      return (
+        <Typography.Text>
+          {format(new Date(text), "dd/MM/yyyy HH:MM")}
+        </Typography.Text>
+      );
     },
   },
 ];
@@ -90,8 +94,8 @@ const RestaurantsPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [queryParams, setQueryParams] = useState({
-    currentPage: 1,
-    perPage: 5,
+    page: 1,
+    limit: 5,
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteRestaurant, setDeleteRestaurant] = useState<Restaurant | null>(
@@ -207,7 +211,7 @@ const RestaurantsPage = () => {
       setQueryParams((prev) => ({
         ...prev,
         q: value,
-        currentPage: 1,
+        page: 1,
       }));
     }, 500);
   }, []);
@@ -225,7 +229,7 @@ const RestaurantsPage = () => {
       setQueryParams((prev) => ({
         ...prev,
         ...filter,
-        currentPage: 1,
+        page: 1,
       }));
     }
   };
@@ -241,7 +245,7 @@ const RestaurantsPage = () => {
     setDeleteRestaurant(restaurant);
     setIsDeleteModalOpen(true);
     try {
-    const {data} = await getManagerCount(restaurant.id as string);
+      const { data } = await getManagerCount(restaurant.id as string);
       console.log("count", data.count);
       setManagerCount(data.count);
       setDeleteManagers(true); // Set to true by default
@@ -420,14 +424,14 @@ const RestaurantsPage = () => {
               whiteSpace: "nowrap",
             }}
             pagination={{
-              current: queryParams.currentPage,
-              pageSize: queryParams.perPage,
+              current: queryParams.page,
+              pageSize: queryParams.limit,
               total: tenants?.total,
               onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
                     ...prev,
-                    currentPage: page,
+                    page: page,
                   };
                 });
               },

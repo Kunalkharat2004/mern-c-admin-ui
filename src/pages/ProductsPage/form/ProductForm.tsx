@@ -1,6 +1,18 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Card, Col, Form, FormInstance, Grid, Input, Row, Select, Space, Switch, Typography } from "antd";
-import { getAllCategories, getAllTenants } from "../../../http/api";
+import {
+  Card,
+  Col,
+  Form,
+  FormInstance,
+  Grid,
+  Input,
+  Row,
+  Select,
+  Space,
+  Switch,
+  Typography,
+} from "antd";
+import { getAllCategories, getAllTenants, getTenantById } from "../../../http/api";
 import { useMemo, useState } from "react";
 import { ICategory, Tenant } from "../../../types";
 import { debounce } from "lodash";
@@ -17,15 +29,15 @@ interface QueryParams {
   q?: string;
 }
 
-const ProductForm = ({form}:{form: FormInstance}) => {
+const ProductForm = ({ form }: { form: FormInstance }) => {
   const screens = useBreakpoint();
   const initialImage = form.getFieldValue("image") || null;
- 
+    const selectedTenantId = Form.useWatch("tenantId");
+
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
     limit: 5,
   });
-
 
   const getTenants = async () => {
     const params = { ...queryParams };
@@ -39,14 +51,6 @@ const ProductForm = ({form}:{form: FormInstance}) => {
 
     const { data } = await getAllTenants(queryString);
 
-    // if (
-    //   isEditMode &&
-    //   initialValues?.tenant &&
-    //   !data.data.find((t: Tenant) => t.id === initialValues.tenant?.id)
-    // ) {
-    //   data.data = [initialValues.tenant, ...data.data];
-    // }
-
     return data;
   };
 
@@ -57,12 +61,19 @@ const ProductForm = ({form}:{form: FormInstance}) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const { data: tenant } = useQuery({
+  const { data: tenant, isFetching: loadingTenantPage } = useQuery({
     queryKey: ["tenant", queryParams],
     queryFn: getTenants,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+    const { data: singleTenant, isFetching: loadingTenantById } = useQuery({
+      queryKey: ["tenantById", selectedTenantId],
+      queryFn: () => getTenantById(selectedTenantId!),
+      enabled: Boolean(selectedTenantId),
+      staleTime: 1000 * 60 * 5,
+    });
 
   const debounceQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {
@@ -89,9 +100,8 @@ const ProductForm = ({form}:{form: FormInstance}) => {
     }
   };
 
-
   const selectedCategory = Form.useWatch("categoryId");
-  const { user} = useAuthStore();
+  const { user } = useAuthStore();
 
   return (
     <>
@@ -204,24 +214,33 @@ const ProductForm = ({form}:{form: FormInstance}) => {
                 >
                   <Select
                     showSearch
-                    optionFilterProp="children"
+                    placeholder="Select Tenant"
                     onSearch={handleSearch}
-                    loading={!tenant?.data}
+                    loading={loadingTenantPage || loadingTenantById}
                     allowClear
+                    filterOption={false} // server‐side filter only
                     notFoundContent={
                       tenant?.data?.length === 0 ? "No tenant found" : null
                     }
-                    filterOption={(input, option) =>
-                      option?.children
-                        ? String(option.children)
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        : false
-                    }
                   >
-                    {tenant?.data.map((item: Tenant) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.name}
+                    {/* 1) If we already have a selectedTenantId, but it isn’t in the current page,
+                        inject that option so its name displays. */}
+                    {singleTenant?.data &&
+                      !tenant?.data.find(
+                        (t) => t.id === singleTenant.data.id
+                      ) && (
+                        <Select.Option
+                          key={singleTenant.data.id}
+                          value={singleTenant.data.id}
+                        >
+                          {singleTenant.data.name}
+                        </Select.Option>
+                      )}
+
+                    {/* 2) Then render the paginated list of five (or whatever) tenants */}
+                    {tenant?.data.map((t) => (
+                      <Select.Option key={t.id} value={t.id}>
+                        {t.name}
                       </Select.Option>
                     ))}
                   </Select>

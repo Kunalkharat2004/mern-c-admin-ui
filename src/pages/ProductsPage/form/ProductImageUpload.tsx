@@ -22,9 +22,9 @@ const ProductImageUpload = ({
     className: "avatar-uploader",
     showUploadList: false,
     beforeUpload: (file: File) => {
-      // Image size must be less than 500KB
-      if (file.size > 500 * 1024) {
-        notify.error("Image must be less than 500KB");
+      // Image size must be less than 1.5MB
+      if (file.size > 1.5 * 1024 * 1024) {
+        notify.error("Image must be less than 1.5MB");
         return false;
       }
 

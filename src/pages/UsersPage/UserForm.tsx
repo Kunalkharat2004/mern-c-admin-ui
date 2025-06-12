@@ -9,8 +9,8 @@ import { debounce } from "lodash";
 const { useBreakpoint } = Grid;
 
 interface QueryParams {
-  currentPage: number;
-  perPage: number;
+  page: number;
+  limit: number;
   q?: string;
 }
 
@@ -22,8 +22,8 @@ interface UserFormProps {
 const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
   const screens = useBreakpoint();
   const [queryParams, setQueryParams] = useState<QueryParams>({
-    currentPage: 1,
-    perPage: 5,
+    page: 1,
+    limit: 5,
   });
 
   const getTenants = async () => {
@@ -61,7 +61,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
       setQueryParams((prev) => ({
         ...prev,
         q: value || undefined,
-        currentPage: 1,
+        page: 1,
       }));
     }, 500);
   }, []);
@@ -75,7 +75,7 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
         const { q, ...rest } = prev;
         return {
           ...rest,
-          currentPage: 1,
+          page: 1,
         };
       });
     }
@@ -300,7 +300,11 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                   },
                 ]}
               >
-                <TextArea style={{resize: "none"}} rows={screens.xs ? 3 : 4} allowClear />
+                <TextArea
+                  style={{ resize: "none" }}
+                  rows={screens.xs ? 3 : 4}
+                  allowClear
+                />
               </Form.Item>
             </Col>
           </Row>

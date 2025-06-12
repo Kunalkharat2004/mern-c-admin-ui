@@ -56,7 +56,6 @@ const getColumns = (screens: Record<string, boolean>) => [
           <Image
             src={record.image}
             fallback="https://via.placeholder.com/150"
-            preview={false}
             alt={text}
             style={{
               width: screens.xs ? 40 : 60,
