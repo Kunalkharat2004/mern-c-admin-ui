@@ -6,7 +6,6 @@ export type Credentials = {
 export interface User {
     id?: string;
     email: string;
-    address: string;
     firstName: string;
     lastName: string;
     role: string;
@@ -76,4 +75,15 @@ export interface CreateProduct extends Omit<Products, 'image'> {
 export interface CreateProductResponse {
     msg: string;
     _id: string;
+}
+
+export interface Promo {
+    _id?: string;
+  title: string;
+  code: string;
+  discount: number; // in percentage
+  validTill: Date;
+  tenantId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

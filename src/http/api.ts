@@ -1,8 +1,9 @@
-import { Credentials, Restaurant, User } from "../types"
+import { Credentials, Promo, Restaurant, User } from "../types"
 import api from "./client"
 
 const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL;
 const CATALOG_SERVICE_URL = import.meta.env.VITE_CATALOG_SERVICE_URL;
+const ORDER_SERVICE_URL = import.meta.env.VITE_ORDER_SERVICE_URL;
 
 // AUTH SERVICE
 export const login = (credentials: Credentials)=> api.post(`${AUTH_SERVICE_URL}/auth/login`, credentials);
@@ -54,4 +55,12 @@ export const updateProductApi = (productData: FormData, id: string) => api.put(`
     }
 );
 
+export const getAllPromos = (queryParamasString: string) => api.get(`${ORDER_SERVICE_URL}/api/coupon?${queryParamasString}`);
+ 
 export const deleteProduct = (id: string) => api.delete(`${CATALOG_SERVICE_URL}/api/products/${id}`);
+
+export const deletePromo = (id: string) => api.delete(`${ORDER_SERVICE_URL}/api/coupon/${id}`);
+
+export const createPromo = (promoData: Promo) => api.post(`${ORDER_SERVICE_URL}/api/coupon`, promoData);
+
+export const updatePromo = (promoData: Promo, id: string) => api.patch(`${ORDER_SERVICE_URL}/api/coupon/${id}`, promoData);

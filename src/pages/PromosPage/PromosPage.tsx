@@ -20,21 +20,24 @@ import {
   Table,
   Grid,
   Modal,
+  Typography,
 } from "antd";
 import { NavLink } from "react-router-dom";
 import {
-  createUser,
-  getAllUsers,
-  deleteUser,
-  updateUser,
+
+  createPromo,
+  deletePromo,
+ 
+  getAllPromos,
+  updatePromo,
 } from "../../http/api";
-import UsersFilter from "./UsersFilter";
 import { useEffect, useMemo, useState } from "react";
-import UserForm from "./UserForm";
-import { FieldData, User } from "../../types";
+import { FieldData, Promo } from "../../types";
 import { useNotification } from "../../context/NotificationContext";
 import { debounce } from "lodash";
-import { GoDash } from "react-icons/go";
+import PromosFilter from "./PromosFilter";
+import { format } from "date-fns";
+import PromosForm from "./PromosForm";
 
 const { useBreakpoint } = Grid;
 
@@ -43,102 +46,110 @@ const BreadcrumbItems = [
     title: <NavLink to="/">Dashboard</NavLink>,
   },
   {
-    title: "Users",
-    link: "/users",
+    title: "Promos",
+    link: "/promos",
   },
 ];
 
 const getColumns = (screens: Record<string, boolean>) => [
   {
-    title: "Name",
-    dataIndex: "firstName",
+    title: "Title",
+    dataIndex: "title",
     width: screens.xs ? 150 : "25%",
     ellipsis: true,
-    render: (_: string, record: { firstName: string; lastName: string }) => {
-      return `${record.firstName} ${record.lastName}`
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-    },
   },
   {
-    title: "Email",
-    dataIndex: "email",
-    width: screens.xs ? 150 : "30%",
+    title: "Code",
+    dataIndex: "code",
+    width: screens.xs ? 150 : "20%",
     ellipsis: true,
   },
   {
-    title: "Role",
-    dataIndex: "role",
+    title: "Discount (in %)",
+    dataIndex: "discount",
     width: screens.xs ? 100 : "15%",
     ellipsis: true,
   },
+  // {
+  //   title: "Restaurant",
+  //   dataIndex: "tenantId",
+  //   width: screens.xs ? 150 : "25%",
+  //   ellipsis: true,
+  // },
   {
-    title: "Restaurant",
-    dataIndex: "tenant",
+    title: "Valid Till",
+    dataIndex: "validTill",
     width: screens.xs ? 150 : "25%",
     ellipsis: true,
-    render: (_text: string, record: User) => {
-      // show null if tenant is null
-      if (!record.tenant) return <GoDash />;
-      return record.tenant.name;
+    render: (text: string) => {
+      return (
+        <Typography.Text ellipsis>
+          {format(new Date(text), screens.xs ? "dd/MM/yy" : "dd/MM/yyyy HH:MM")}
+        </Typography.Text>
+      );
     },
   },
 ];
 
-const UsersPage = () => {
+interface QueryParams {
+  page: number;
+  limit: number;
+  q?: string;
+}
+const PromosPage = () => {
   const screens = useBreakpoint();
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
+  const [editPromo, setEditPromo] = useState<Promo | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [queryParams, setQueryParams] = useState({
+  const [promoToDelete, setPromoToDelete] = useState<Promo | null>(null);
+  const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
     limit: 5,
   });
 
-  const getUsers = async () => {
+  const getPromos = async () => {
     const filteredValues = Object.fromEntries(
       Object.entries(queryParams).filter((item) => !!item[1])
     );
     const queryParamasString = new URLSearchParams(
       filteredValues as unknown as Record<string, string>
     ).toString();
-    const { data } = await getAllUsers(queryParamasString);
+    const { data } = await getAllPromos(queryParamasString);
     return data;
   };
   const notification = useNotification();
 
-  const addUser = async (userData: User) => {
-    await createUser(userData);
+
+  const addPromo = async (promoData: Promo) => {
+    await createPromo(promoData);
   };
 
-  const userUpdate = async (userData: User) => {
-    if (!editUser?.id) throw new Error("User ID is required");
-    return await updateUser(userData as User, editUser.id);
+  const promoUpdate = async (promoData: Promo) => {
+    if (!editPromo?._id) throw new Error("Promo ID is required");
+    return await updatePromo(promoData as Promo, editPromo._id);
   };
 
   const {
-    data: users,
+    data: promos,
     isFetching,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["users", queryParams],
-    queryFn: getUsers,
+    queryKey: ["promos", queryParams],
+    queryFn: getPromos,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const { mutate, isPending: createUserMutationPending } = useMutation({
-    mutationKey: ["createUser"],
-    mutationFn: addUser,
+  const { mutate, isPending: createPromoMutationPending } = useMutation({
+    mutationKey: ["createPromo"],
+    mutationFn: addPromo,
     onSuccess: () => {
       setDrawerOpen(false);
       form.resetFields();
-      notification.success("User created successfully");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      notification.success("Promo created successfully");
+      queryClient.invalidateQueries({ queryKey: ["promos"] });
     },
 
     onError: () => {
@@ -148,15 +159,15 @@ const UsersPage = () => {
     },
   });
 
-  const { mutate: updateMutate, isPending: updateUserMutationPending } =
+  const { mutate: updateMutate, isPending: updatePromoMutationPending } =
     useMutation({
-      mutationKey: ["updateUser"],
-      mutationFn: userUpdate,
+      mutationKey: ["updatePromo"],
+      mutationFn: promoUpdate,
       onSuccess: () => {
         setDrawerOpen(false);
         form.resetFields();
-        notification.success("User updated successfully");
-        queryClient.invalidateQueries({ queryKey: ["users"] });
+        notification.success("Promo updated successfully");
+        queryClient.invalidateQueries({ queryKey: ["promos"] });
       },
 
       onError: () => {
@@ -173,14 +184,23 @@ const UsersPage = () => {
     try {
       await form.validateFields();
       const values = form.getFieldsValue();
-      const isEditMode = !!editUser;
+          const payload = {
+            title: values.title,
+            code: values.code,
+            discount: values.discount,
+            validTill: values.endDate.format("YYYY-MM-DD"), // rename endDate → validTill
+            tenantId: values.tenantId,
+          };
 
-      if (isEditMode && editUser?.id) {
-        console.log("Updating user...", values);
-        await updateMutate({ ...values, id: editUser.id });
+        console.log("Payload ready for API:", payload);
+      const isEditMode = !!editPromo;
+
+      if (isEditMode && editPromo?._id) {
+        console.log("Updating promo...", values);
+        updateMutate({ ...payload, _id: editPromo._id });
       } else {
-        console.log("Creating user...", values);
-        await mutate(values);
+        console.log("Creating promo...", values);
+        mutate(payload);
       }
     } catch (error) {
       console.error("Form validation or submission error:", error);
@@ -188,12 +208,12 @@ const UsersPage = () => {
   };
 
   useEffect(() => {
-    if (editUser) {
+    if (editPromo) {
       setDrawerOpen(true);
-      console.log("editUser", editUser);
-      form.setFieldsValue({ ...editUser, tenantId: editUser.tenant?.id });
+      console.log("editPromo", editPromo);
+      form.setFieldsValue({ ...editPromo, tenantId: editPromo.tenantId });
     }
-  }, [editUser, form]);
+  }, [editPromo, form]);
 
   const debounceQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {
@@ -207,8 +227,8 @@ const UsersPage = () => {
 
   const handleFilterChange = (changedFields: FieldData[]) => {
     // {
-    // q: "K",
-    // role: "admin"
+    // q: "Monsoon",
+    // discount: 10,
     // }
     console.log("Changed fields: ", changedFields);
 
@@ -231,25 +251,25 @@ const UsersPage = () => {
     }
   };
 
-  const handleDeleteUser = async (id: string | undefined) => {
+  const handleDeletePromo = async (id: string | undefined) => {
     if (!id) {
-      notification.error("Invalid user ID");
+      notification.error("Invalid promo ID");
       return;
     }
     try {
-      await deleteUser(id);
-      notification.success("User deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      await deletePromo(id);
+      notification.success("Promo deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["promos"] });
       setDeleteModalOpen(false);
-      setUserToDelete(null);
+      setPromoToDelete(null);
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting promo:", error);
       notification.error("Something went wrong");
     }
   };
 
-  const showDeleteModal = (user: User) => {
-    setUserToDelete(user);
+  const showDeleteModal = (promo: Promo) => {
+    setPromoToDelete(promo);
     setDeleteModalOpen(true);
   };
 
@@ -284,37 +304,31 @@ const UsersPage = () => {
           }}
         />
         <Form form={formfilter} onFieldsChange={handleFilterChange}>
-          <UsersFilter
-            onFilterChange={(FilterName, FilterValue) =>
-              console.log(FilterName, FilterValue)
-            }
-          >
+          <PromosFilter>
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => {
                 setDrawerOpen(true);
-                setEditUser(null);
-                form.resetFields();
               }}
               style={{
                 width: screens.xs ? "100%" : "auto",
                 marginTop: screens.xs ? "8px" : "0",
               }}
             >
-              Add User
+              Add Promo
             </Button>
-          </UsersFilter>
+          </PromosFilter>
         </Form>
 
         <Drawer
-          title={editUser ? "Edit User" : "Create a new user"}
+          title={editPromo ? "Edit Promo" : "Create Promo"}
           width={screens.xs ? "100%" : 720}
-          loading={createUserMutationPending || updateUserMutationPending}
+          loading={createPromoMutationPending || updatePromoMutationPending}
           onClose={() => {
             console.log("Drawer Closed");
             setDrawerOpen(false);
-            setEditUser(null);
+            setEditPromo(null);
             form.resetFields();
           }}
           destroyOnClose={true}
@@ -323,7 +337,7 @@ const UsersPage = () => {
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
               <Button
                 onClick={() => {
-                  setEditUser(null);
+                  setEditPromo(null);
                   form.resetFields();
                   setDrawerOpen(false);
                 }}
@@ -348,10 +362,7 @@ const UsersPage = () => {
               padding: screens.xs ? "8px" : "24px",
             }}
           >
-            <UserForm
-              isEditMode={!!editUser}
-              initialValues={editUser || undefined}
-            />
+            <PromosForm form={form} />
           </Form>
         </Drawer>
 
@@ -368,14 +379,14 @@ const UsersPage = () => {
                 dataIndex: "action",
                 width: screens.xs ? 100 : "15%",
                 ellipsis: true,
-                render: (_: string, record: User) => {
+                render: (_: string, record: Promo) => {
                   return (
                     <Space>
                       <Button
                         type="link"
                         icon={<EditOutlined />}
                         onClick={() => {
-                          setEditUser(record);
+                          setEditPromo(record);
                         }}
                       />
                       <Button
@@ -388,7 +399,7 @@ const UsersPage = () => {
                 },
               },
             ]}
-            dataSource={users?.data}
+            dataSource={promos?.data}
             loading={isFetching}
             scroll={{
               x: screens.xs ? 550 : "100%",
@@ -401,7 +412,7 @@ const UsersPage = () => {
             pagination={{
               current: queryParams.page,
               pageSize: queryParams.limit,
-              total: users?.total,
+              total: promos?.total,
               onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
@@ -423,21 +434,22 @@ const UsersPage = () => {
         </div>
 
         <Modal
-          title="Delete User"
+          title="Delete Promo"
           open={deleteModalOpen}
-          onOk={() => userToDelete?.id && handleDeleteUser(userToDelete.id)}
+          onOk={() =>
+            promoToDelete?._id && handleDeletePromo(promoToDelete._id)
+          }
           onCancel={() => {
             setDeleteModalOpen(false);
-            setUserToDelete(null);
+            setPromoToDelete(null);
           }}
           okText="Delete"
           okButtonProps={{ danger: true }}
         >
-          <p>Are you sure you want to delete this user?</p>
-          {userToDelete && (
+          <p>Are you sure you want to delete this promo?</p>
+          {promoToDelete && (
             <p>
-              <strong>User:</strong> {userToDelete.firstName}{" "}
-              {userToDelete.lastName}
+              <strong>Promo:</strong> {promoToDelete.code}
             </p>
           )}
         </Modal>
@@ -446,4 +458,4 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage;
+export default PromosPage;

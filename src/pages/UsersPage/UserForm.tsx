@@ -2,7 +2,6 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space, Grid } from "antd";
 import { getAllTenants } from "../../http/api";
 import { Tenant, User } from "../../types";
-import TextArea from "antd/es/input/TextArea";
 import { useMemo, useState } from "react";
 import { debounce } from "lodash";
 
@@ -281,30 +280,6 @@ const UserForm = ({ isEditMode = false, initialValues }: UserFormProps) => {
                     </Form.Item>
                   ) : null
                 }
-              </Form.Item>
-            </Col>
-          </Row>
-        </Card>
-
-        <Card title="Address Info">
-          <Row gutter={[20, 20]}>
-            <Col span={24}>
-              <Form.Item
-                label="Address"
-                name="address"
-                initialValue={initialValues?.address}
-                rules={[
-                  {
-                    required: true,
-                    message: "Address is required!",
-                  },
-                ]}
-              >
-                <TextArea
-                  style={{ resize: "none" }}
-                  rows={screens.xs ? 3 : 4}
-                  allowClear
-                />
               </Form.Item>
             </Col>
           </Row>

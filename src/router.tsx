@@ -7,6 +7,7 @@ import Root from "./layouts/Root";
 import UsersPage from "./pages/UsersPage/UsersPage";
 import RestaurantsPage from "./pages/RestaurantsPage/RestaurantsPage";
 import ProductsPage from "./pages/ProductsPage/ProductsPage";
+import PromosPage from "./pages/PromosPage/PromosPage";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
           {
             path: "products",
             element: <ProductsPage />,
+          },
+          {
+            path: "promos",
+            element: <PromosPage />,
           },
         ],
       },
