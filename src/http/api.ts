@@ -67,6 +67,7 @@ export const updateProductApi = (productData: FormData, id: string) =>
     },
   });
 
+// ORDER SERVICE
 export const getAllPromos = (queryParamasString: string) =>
   api.get(`${ORDER_SERVICE_URL}/api/coupon?${queryParamasString}`);
 
@@ -81,3 +82,7 @@ export const createPromo = (promoData: Promo) =>
 
 export const updatePromo = (promoData: Promo, id: string) =>
   api.patch(`${ORDER_SERVICE_URL}/api/coupon/${id}`, promoData);
+
+export const  getOrders = (queryParams:string)=>
+  api.get(`${ORDER_SERVICE_URL}/api/order?${queryParams}`)
+
