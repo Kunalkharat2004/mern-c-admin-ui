@@ -8,7 +8,6 @@ type PricingProps = {
 };
 
 const Pricing = ({ selectedCategory }: PricingProps) => {
-
   const categoryId: string | null = selectedCategory;
 
   const singleCategory = async () => {
@@ -19,16 +18,16 @@ const Pricing = ({ selectedCategory }: PricingProps) => {
     return data;
   };
 
-   const { data: category } = useQuery<ICategory>({
-     queryKey: ["category", categoryId],
-     queryFn: singleCategory,
-     staleTime: 1000 * 60 * 5, // 5 minutes
-   });
+  const { data: category } = useQuery<ICategory>({
+    queryKey: ["category", categoryId],
+    queryFn: singleCategory,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   if (!category) {
     return <Card title="Product Pricing">No pricing configuration found.</Card>;
   }
- 
+
   return (
     <Card title="Product Pricing">
       {Object.entries(category?.priceConfiguration).map(
@@ -51,27 +50,27 @@ const Pricing = ({ selectedCategory }: PricingProps) => {
                 >
                   <Card>
                     <Row gutter={20}>
-                      {(configurationValue.availableOptions as Array<string>).map(
-                        (option: string) => {
-                          return (
-                            <Col span={8} key={option}>
-                              <Form.Item
-                                label={option}
-                                name={[
-                                  "priceConfiguration",
-                                  JSON.stringify({
-                                    configurationKey: configurationKey,
-                                    priceType: configurationValue.priceType,
-                                  }),
-                                  option,
-                                ]}
-                              >
-                                <InputNumber addonAfter="₹" />
-                              </Form.Item>
-                            </Col>
-                          );
-                        }
-                      )}
+                      {(
+                        configurationValue.availableOptions as Array<string>
+                      ).map((option: string) => {
+                        return (
+                          <Col span={8} key={option}>
+                            <Form.Item
+                              label={option}
+                              name={[
+                                "priceConfiguration",
+                                JSON.stringify({
+                                  configurationKey: configurationKey,
+                                  priceType: configurationValue.priceType,
+                                }),
+                                option,
+                              ]}
+                            >
+                              <InputNumber addonAfter="₹" />
+                            </Form.Item>
+                          </Col>
+                        );
+                      })}
                     </Row>
                   </Card>
                 </Space>

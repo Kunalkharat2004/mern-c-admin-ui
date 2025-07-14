@@ -15,6 +15,6 @@ export const makeFormData = (data: Products): FormData => {
       formData.append(key, value);
     }
   });
-    
-    return formData;
+
+  return formData;
 };

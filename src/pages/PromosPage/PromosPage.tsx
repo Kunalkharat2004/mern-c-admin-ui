@@ -24,10 +24,8 @@ import {
 } from "antd";
 import { NavLink } from "react-router-dom";
 import {
-
   createPromo,
   deletePromo,
- 
   getAllPromos,
   updatePromo,
 } from "../../http/api";
@@ -120,7 +118,6 @@ const PromosPage = () => {
   };
   const notification = useNotification();
 
-
   const addPromo = async (promoData: Promo) => {
     await createPromo(promoData);
   };
@@ -184,15 +181,15 @@ const PromosPage = () => {
     try {
       await form.validateFields();
       const values = form.getFieldsValue();
-          const payload = {
-            title: values.title,
-            code: values.code,
-            discount: values.discount,
-            validTill: values.endDate.format("YYYY-MM-DD"), // rename endDate → validTill
-            tenantId: values.tenantId,
-          };
+      const payload = {
+        title: values.title,
+        code: values.code,
+        discount: values.discount,
+        validTill: values.endDate.format("YYYY-MM-DD"), // rename endDate → validTill
+        tenantId: values.tenantId,
+      };
 
-        console.log("Payload ready for API:", payload);
+      console.log("Payload ready for API:", payload);
       const isEditMode = !!editPromo;
 
       if (isEditMode && editPromo?._id) {

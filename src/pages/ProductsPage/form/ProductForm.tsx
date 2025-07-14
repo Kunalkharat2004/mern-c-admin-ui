@@ -12,7 +12,11 @@ import {
   Switch,
   Typography,
 } from "antd";
-import { getAllCategories, getAllTenants, getTenantById } from "../../../http/api";
+import {
+  getAllCategories,
+  getAllTenants,
+  getTenantById,
+} from "../../../http/api";
 import { useMemo, useState } from "react";
 import { ICategory, Tenant } from "../../../types";
 import { debounce } from "lodash";
@@ -32,7 +36,7 @@ interface QueryParams {
 const ProductForm = ({ form }: { form: FormInstance }) => {
   const screens = useBreakpoint();
   const initialImage = form.getFieldValue("image") || null;
-    const selectedTenantId = Form.useWatch("tenantId");
+  const selectedTenantId = Form.useWatch("tenantId");
 
   const [queryParams, setQueryParams] = useState<QueryParams>({
     page: 1,
@@ -68,12 +72,12 @@ const ProductForm = ({ form }: { form: FormInstance }) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-    const { data: singleTenant, isFetching: loadingTenantById } = useQuery({
-      queryKey: ["tenantById", selectedTenantId],
-      queryFn: () => getTenantById(selectedTenantId!),
-      enabled: Boolean(selectedTenantId),
-      staleTime: 1000 * 60 * 5,
-    });
+  const { data: singleTenant, isFetching: loadingTenantById } = useQuery({
+    queryKey: ["tenantById", selectedTenantId],
+    queryFn: () => getTenantById(selectedTenantId!),
+    enabled: Boolean(selectedTenantId),
+    staleTime: 1000 * 60 * 5,
+  });
 
   const debounceQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {

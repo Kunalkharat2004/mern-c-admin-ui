@@ -187,7 +187,7 @@ const PromoForm = ({ form }: { form: FormInstance }) => {
                         inject that option so its name displays. */}
                     {singleTenant?.data &&
                       !tenant?.data.find(
-                        (t:Tenant) => t.id === singleTenant.data.id
+                        (t: Tenant) => t.id === singleTenant.data.id
                       ) && (
                         <Select.Option
                           key={singleTenant.data.id}
@@ -198,7 +198,7 @@ const PromoForm = ({ form }: { form: FormInstance }) => {
                       )}
 
                     {/* 2) Then render the paginated list of five (or whatever) tenants */}
-                    {tenant?.data.map((t:Tenant) => (
+                    {tenant?.data.map((t: Tenant) => (
                       <Select.Option key={t.id} value={t.id}>
                         {t.name}
                       </Select.Option>

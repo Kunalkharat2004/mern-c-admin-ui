@@ -1,4 +1,9 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import {
   Breadcrumb,
   Button,
@@ -15,8 +20,18 @@ import {
 } from "antd";
 import { NavLink } from "react-router-dom";
 import ProductsFilter from "./ProductsFilter";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProductApi, deleteProduct, getAllProducts, updateProductApi } from "../../http/api";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  createProductApi,
+  deleteProduct,
+  getAllProducts,
+  updateProductApi,
+} from "../../http/api";
 import { useEffect, useMemo, useState } from "react";
 import {
   CreateProductResponse,
@@ -128,9 +143,7 @@ const getColumns = (screens: Record<string, boolean>) => [
       );
     },
   },
-  {
-
-  }
+  {},
 ];
 
 const ProductsPage = () => {
@@ -147,8 +160,8 @@ const ProductsPage = () => {
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Products | null>(null);
- const [deleteModalOpen, setDeleteModalOpen] = useState(false);
- const [productToDelete, setProductToDelete] = useState<Products | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Products | null>(null);
 
   const getProducts = async () => {
     const filteredValues = Object.fromEntries(
@@ -173,7 +186,6 @@ const ProductsPage = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  
   useEffect(() => {
     if (selectedProduct) {
       setDrawerOpen(true);
@@ -189,7 +201,7 @@ const ProductsPage = () => {
       //       priceConfiguration: {
       //            { "configurationKey": "Crust", "priceType": "additional" }: { Thin: 44, Thick: 44 }
       // {"configurationKey":"Size","priceType":"base"}: {Small: 44, Medium: 44, Large: 44}
-    // }
+      // }
 
       const priceConfiguration = Object.entries(
         selectedProduct.priceConfiguration
@@ -212,16 +224,16 @@ const ProductsPage = () => {
             [curr.name]: curr.value,
           };
         }, {});
-      
+
       console.log("priceConfiguration", priceConfiguration);
       console.log("attributeConfiguration", attributeConfiguration);
-      
+
       form.setFieldsValue({
         ...selectedProduct,
         priceConfiguration: priceConfiguration,
         attributeConfiguration: attributeConfiguration,
         categoryId: selectedProduct.category._id,
-        })
+      });
     }
   }, [selectedProduct, form]);
 
@@ -261,73 +273,76 @@ const ProductsPage = () => {
     }
   };
 
-  const createProduct = async (productData: FormData): Promise<CreateProductResponse> => {
-    if (selectedProduct) { 
+  const createProduct = async (
+    productData: FormData
+  ): Promise<CreateProductResponse> => {
+    if (selectedProduct) {
       // edit mode
-      const { data } = await updateProductApi(
-        productData,
-        selectedProduct._id, 
-      )
+      const { data } = await updateProductApi(productData, selectedProduct._id);
       return data;
     } else {
-      const {data} = await createProductApi(productData);
+      const { data } = await createProductApi(productData);
       console.log("data", data);
       return data;
     }
-  }
+  };
 
   const queryClient = useQueryClient();
-  const { mutate: productMutate, isPending: createProductMutationPending } = useMutation({
-    mutationKey: ["createProduct"],
-    mutationFn: createProduct,
-    onSuccess: () => {
-      setDrawerOpen(false);
-      form.resetFields();
-      notify.success(selectedProduct ? "Product updated successfully" : "Product created successfully");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
+  const { mutate: productMutate, isPending: createProductMutationPending } =
+    useMutation({
+      mutationKey: ["createProduct"],
+      mutationFn: createProduct,
+      onSuccess: () => {
+        setDrawerOpen(false);
+        form.resetFields();
+        notify.success(
+          selectedProduct
+            ? "Product updated successfully"
+            : "Product created successfully"
+        );
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      },
 
-    onError: () => {
-      setDrawerOpen(false);
-      form.resetFields();
-      notify.error("Something went wrong");
-    },
-  });
+      onError: () => {
+        setDrawerOpen(false);
+        form.resetFields();
+        notify.error("Something went wrong");
+      },
+    });
 
-  const handleOnSubmit = async() => {
-  
+  const handleOnSubmit = async () => {
     try {
-       await form.validateFields();
+      await form.validateFields();
       const values = form.getFieldsValue();
       console.log("values", values);
 
-       const priceConfiguration: IPriceConfiguration = Object.entries(
-         values.priceConfiguration
-       ).reduce((acc: IPriceConfiguration, [key, option]) => {
-         const parsedKey = JSON.parse(key);
-         const { configurationKey, priceType } = parsedKey;
-         acc[configurationKey] = {
-           priceType: priceType,
-           availableOptions: option as Map<string, number>,
-         };
+      const priceConfiguration: IPriceConfiguration = Object.entries(
+        values.priceConfiguration
+      ).reduce((acc: IPriceConfiguration, [key, option]) => {
+        const parsedKey = JSON.parse(key);
+        const { configurationKey, priceType } = parsedKey;
+        acc[configurationKey] = {
+          priceType: priceType,
+          availableOptions: option as Map<string, number>,
+        };
 
-         return acc;
-       }, {});
+        return acc;
+      }, {});
 
-       const attributeConfiguration: IAttributeConfigurationValue[] =
-         Object.entries(values.attributeConfiguration).reduce(
-           (acc: IAttributeConfigurationValue[], [name, value]) => {
-             const obj: IAttributeConfigurationValue = {
-               name: name,
-               value: value as string,
-             };
-             acc.push(obj);
-             return acc;
-           },
-           []
+      const attributeConfiguration: IAttributeConfigurationValue[] =
+        Object.entries(values.attributeConfiguration).reduce(
+          (acc: IAttributeConfigurationValue[], [name, value]) => {
+            const obj: IAttributeConfigurationValue = {
+              name: name,
+              value: value as string,
+            };
+            acc.push(obj);
+            return acc;
+          },
+          []
         );
-      
-      const categoryId = values.categoryId;  
+
+      const categoryId = values.categoryId;
 
       const productData = {
         ...values,
@@ -337,15 +352,14 @@ const ProductsPage = () => {
         priceConfiguration: priceConfiguration,
         attributeConfiguration: attributeConfiguration,
         isPublished: values.isPublished ? true : false,
-      }
+      };
       console.log("productData", productData);
       const formData = makeFormData(productData);
       productMutate(formData);
-
     } catch (err) {
       console.error("Form validation or submission error:", err);
-      notify.error("Something went wrong")
-   }
+      notify.error("Something went wrong");
+    }
   };
 
   const handleDeleteProduct = async (id: string | undefined) => {
@@ -365,10 +379,10 @@ const ProductsPage = () => {
     }
   };
 
-    const showDeleteModal = (product: Products) => {
-      setProductToDelete(product);
-      setDeleteModalOpen(true);
-    };
+  const showDeleteModal = (product: Products) => {
+    setProductToDelete(product);
+    setDeleteModalOpen(true);
+  };
 
   if (isError) {
     return (
@@ -573,5 +587,3 @@ const ProductsPage = () => {
 };
 
 export default ProductsPage;
-
-

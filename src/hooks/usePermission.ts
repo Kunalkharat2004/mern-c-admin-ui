@@ -1,15 +1,15 @@
 import { User } from "../types";
 
-export const usePermission = () =>{
-    const allowedRoles = ["admin", "manager"];
+export const usePermission = () => {
+  const allowedRoles = ["admin", "manager"];
 
-    const _hasPermission = (user: User | null)=>{
-       if(user){
-        return allowedRoles.includes(user.role);
-       }
-       return false 
+  const _hasPermission = (user: User | null) => {
+    if (user) {
+      return allowedRoles.includes(user.role);
     }
-    return{
-        isAllowed: (user:User | null)=> _hasPermission(user)
-    }
-}
+    return false;
+  };
+  return {
+    isAllowed: (user: User | null) => _hasPermission(user),
+  };
+};

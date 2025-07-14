@@ -11,20 +11,19 @@ interface PromosFilterProps {
 }
 
 const PromosFilter = ({ children }: PromosFilterProps) => {
+  const getRestaurants = async () => {
+    const { data } = await getAllTenants(`page=1&limit=100`);
+    return data;
+  };
 
-    const getRestaurants = async () => {
-      const { data } = await getAllTenants(`page=1&limit=100`);
-      return data;
-    };
-
-     const { data: restaurants } = useQuery({
-       queryKey: ["restaurants"],
-       queryFn: getRestaurants,
-       placeholderData: keepPreviousData,
-       staleTime: 1000 * 60 * 5,
-     });
+  const { data: restaurants } = useQuery({
+    queryKey: ["restaurants"],
+    queryFn: getRestaurants,
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5,
+  });
   const screens = useBreakpoint();
- const { user } = useAuthStore();
+  const { user } = useAuthStore();
   return (
     <>
       <Card>

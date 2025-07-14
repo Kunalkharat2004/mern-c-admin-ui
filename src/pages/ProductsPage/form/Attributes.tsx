@@ -40,38 +40,36 @@ const Attributes = ({ selectedCategory }: AttributesProps) => {
                 style={{ width: "100%" }}
               >
                 {attributeConfigurationValue.widgetType === "radio" ? (
-                 <Row
-                 gutter={20}
-                 >
-                  <Col>
-                  <Form.Item
-                    label={attributeConfigurationValue.name}
-                    name={[
-                      "attributeConfiguration",
-                      attributeConfigurationValue.name,
-                    ]}
-                    initialValue={attributeConfigurationValue.defaultValue}
-                    rules={[
-                      {
-                        required: true,
-                        message: `${attributeConfigurationValue.name} is required`,
-                      },
-                    ]}
-                  >
-                    <Radio.Group>
-                      {attributeConfigurationValue.availableOptions.map(
-                        (option: string) => {
-                          return (
-                            <Radio.Button value={option} key={option}>
-                              {option}
-                            </Radio.Button>
-                          );
-                        }
-                      )}
-                    </Radio.Group>
-                  </Form.Item>
-                  </Col>
-                 </Row>
+                  <Row gutter={20}>
+                    <Col>
+                      <Form.Item
+                        label={attributeConfigurationValue.name}
+                        name={[
+                          "attributeConfiguration",
+                          attributeConfigurationValue.name,
+                        ]}
+                        initialValue={attributeConfigurationValue.defaultValue}
+                        rules={[
+                          {
+                            required: true,
+                            message: `${attributeConfigurationValue.name} is required`,
+                          },
+                        ]}
+                      >
+                        <Radio.Group>
+                          {attributeConfigurationValue.availableOptions.map(
+                            (option: string) => {
+                              return (
+                                <Radio.Button value={option} key={option}>
+                                  {option}
+                                </Radio.Button>
+                              );
+                            }
+                          )}
+                        </Radio.Group>
+                      </Form.Item>
+                    </Col>
+                  </Row>
                 ) : attributeConfigurationValue.widgetType === "switch" ? (
                   <Row>
                     <Col xs={24} sm={24} md={12} lg={12}>
@@ -90,10 +88,7 @@ const Attributes = ({ selectedCategory }: AttributesProps) => {
                           },
                         ]}
                       >
-                        <Switch
-                          checkedChildren="Yes"
-                          unCheckedChildren="No"
-                        />
+                        <Switch checkedChildren="Yes" unCheckedChildren="No" />
                       </Form.Item>
                     </Col>
                   </Row>
