@@ -1,11 +1,13 @@
 import { format } from "date-fns";
 import { OrderType } from "../../types/order";
-import { Breadcrumb, Button, Grid, Result, Space, Table, Tag, Typography } from "antd";
+import { Breadcrumb, Button, Form, Grid, Result, Space, Table, Tag, Typography } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { RightOutlined } from "@ant-design/icons";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getOrders } from "../../http/api";
+import OrdersFilter from "./OrdersFilter";
+import { FieldData } from "../../types";
 
 const { useBreakpoint } = Grid;
 
@@ -115,7 +117,7 @@ const getColumns = (screens: Record<string, boolean>) => [
     ),
   },
   {
-    title: "Status",
+    title: "Order Status",
     dataIndex: "orderStatus",
     key: "orderStatus",
     width: screens.xs ? 140 : "10%",   // Smaller width
@@ -168,11 +170,21 @@ const getColumns = (screens: Record<string, boolean>) => [
 
 const OrdersPage = () => {
   const screens = useBreakpoint();
+  const [formfilter] = Form.useForm();
   const [queryParams, setQueryParams] = useState({
     page: 1,
-    limit: 5,
+    limit: 10,
   });
-
+const getAllOrders = async () => {
+    const filteredValues = Object.fromEntries(
+      Object.entries(queryParams).filter((item) => !!item[1])
+    );
+    const queryParamasString = new URLSearchParams(
+      filteredValues as unknown as Record<string, string>
+    ).toString();
+    const { data } = await getOrders(queryParamasString);
+    return data;
+  };
   const {
     data: orders,
     isPending,
@@ -180,13 +192,33 @@ const OrdersPage = () => {
     refetch,
   } = useQuery({
     queryKey: ["orders", queryParams],
-    queryFn: async () => {
-      return await getOrders("orderStatus=received").then((res) => res.data);
-    },
+    queryFn: getAllOrders,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  const handleFilterChange = (changedFields: FieldData[]) => {
+    // {
+    // tenantId: "2adeb26a-266e-4ff4-8b0b-ec79cefdfaf7",
+    // paymentStatus: "paid"
+    // }
+    console.log("Changed fields: ", changedFields);
+
+    const filter = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, curr) => {
+        return { ...acc, ...curr };
+      }, {});
+ 
+      setQueryParams((prev) => ({
+        ...prev,
+        ...filter,
+        page: 1,
+      }));
+    
+  };
     if (isError) {
       return (
         <Result
@@ -216,6 +248,10 @@ const OrdersPage = () => {
             marginBottom: screens.xs ? "8px" : "16px",
           }}
         />
+         <Form form={formfilter} onFieldsChange={handleFilterChange}>
+        <OrdersFilter/>
+
+         </Form>
         <div
           className="table-container"
           style={{ width: "100%", overflowX: "auto", maxWidth: "100vw" }}

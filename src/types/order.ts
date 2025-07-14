@@ -59,7 +59,7 @@ export enum PaymentMode {
 export enum OrderStatus {
   RECEIVED = "received",
   CONFIRMED = "confirmed",
-  PREPARING = "preparing",
+  PREPARED = "prepared",
   OUT_FOR_DELIVERY = "out_for_delivery",
   DELIVERED = "delivered",
 }
