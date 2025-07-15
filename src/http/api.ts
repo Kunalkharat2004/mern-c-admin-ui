@@ -86,3 +86,6 @@ export const updatePromo = (promoData: Promo, id: string) =>
 export const  getOrders = (queryParams:string)=>
   api.get(`${ORDER_SERVICE_URL}/api/order?${queryParams}`)
 
+export const  getSingleOrder = (orderId:string,queryParams:string)=>
+  api.get(`${ORDER_SERVICE_URL}/api/order/${orderId}?${queryParams}`)
+

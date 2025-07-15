@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { OrderType } from "../../types/order";
-import { Breadcrumb, Button, Form, Grid, Result, Space, Table, Tag, Typography } from "antd";
+import { Breadcrumb, Form, Grid, Space, Table, Tag, Typography } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { RightOutlined } from "@ant-design/icons";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -8,6 +8,9 @@ import { useState } from "react";
 import { getOrders } from "../../http/api";
 import OrdersFilter from "./OrdersFilter";
 import { FieldData } from "../../types";
+import { orderStatusTagColor } from "../../constants";
+import OnError from "../../components/custom/OnError";
+import Loader from "../../assets/Icons/common/Loader";
 
 const { useBreakpoint } = Grid;
 
@@ -20,14 +23,6 @@ const BreadcrumbItems = [
     link: "/orders",
   },
 ];
-
-const orderStatusTagColor: { [key: string]: string } = {
-  received: "green",
-  confirmed: "blue",
-  preparing: "orange",
-  out_for_delivery: "teal",
-  delivered: "gray",
-};
 
 const getColumns = (screens: Record<string, boolean>) => [
    {
@@ -219,20 +214,16 @@ const getAllOrders = async () => {
       }));
     
   };
-    if (isError) {
-      return (
-        <Result
-          status="500"
-          title="Something went wrong"
-          subTitle="Sorry, we encountered an error while fetching the data."
-          extra={[
-            <Button type="primary" key="retry" onClick={() => refetch()}>
-              Retry
-            </Button>,
-          ]}
-        />
-      );
-    }
+   if(isError){
+     return <OnError refetch={refetch}/>
+  }
+  if (isPending) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
+  }
   return (
     <>
       <Space

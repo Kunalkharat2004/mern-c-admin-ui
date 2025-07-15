@@ -9,6 +9,7 @@ import RestaurantsPage from "./pages/RestaurantsPage/RestaurantsPage";
 import ProductsPage from "./pages/ProductsPage/ProductsPage";
 import PromosPage from "./pages/PromosPage/PromosPage";
 import OrdersPage from "./pages/OrdersPage/OrdersPage";
+import SingleOrderPage from "./pages/OrdersPage/SingleOrderPage";
 
 const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
           {
             path: "orders",
             element: <OrdersPage />,
+          },
+          {
+            path: "orders/:orderId",
+            element: <SingleOrderPage />,
           },
         ],
       },

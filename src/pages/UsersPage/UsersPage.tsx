@@ -15,7 +15,6 @@ import {
   Button,
   Drawer,
   Form,
-  Result,
   Space,
   Table,
   Grid,
@@ -35,6 +34,7 @@ import { FieldData, User } from "../../types";
 import { useNotification } from "../../context/NotificationContext";
 import { debounce } from "lodash";
 import { GoDash } from "react-icons/go";
+import OnError from "../../components/custom/OnError";
 
 const { useBreakpoint } = Grid;
 
@@ -95,7 +95,7 @@ const UsersPage = () => {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [queryParams, setQueryParams] = useState({
     page: 1,
-    limit: 5,
+    limit: 10,
   });
 
   const getUsers = async () => {
@@ -253,19 +253,8 @@ const UsersPage = () => {
     setDeleteModalOpen(true);
   };
 
-  if (isError) {
-    return (
-      <Result
-        status="500"
-        title="Something went wrong"
-        subTitle="Sorry, we encountered an error while fetching the data."
-        extra={[
-          <Button type="primary" key="retry" onClick={() => refetch()}>
-            Retry
-          </Button>,
-        ]}
-      />
-    );
+ if(isError){
+     return <OnError refetch={refetch}/>
   }
 
   return (

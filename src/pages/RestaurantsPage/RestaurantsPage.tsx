@@ -17,7 +17,6 @@ import {
   Drawer,
   Form,
   Modal,
-  Result,
   Space,
   Table,
   Grid,
@@ -41,6 +40,7 @@ import { FieldData, Restaurant } from "../../types";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import { format } from "date-fns";
+import OnError from "../../components/custom/OnError";
 
 const { useBreakpoint } = Grid;
 
@@ -95,7 +95,7 @@ const RestaurantsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [queryParams, setQueryParams] = useState({
     page: 1,
-    limit: 5,
+    limit: 10,
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteRestaurant, setDeleteRestaurant] = useState<Restaurant | null>(
@@ -274,19 +274,8 @@ const RestaurantsPage = () => {
       notification.error("Something went wrong");
     }
   };
-  if (isError) {
-    return (
-      <Result
-        status="500"
-        title="Something went wrong"
-        subTitle="Sorry, we encountered an error while fetching the data."
-        extra={[
-          <Button type="primary" key="retry" onClick={() => refetch()}>
-            Retry
-          </Button>,
-        ]}
-      />
-    );
+  if(isError){
+     return <OnError refetch={refetch}/>
   }
 
   return (

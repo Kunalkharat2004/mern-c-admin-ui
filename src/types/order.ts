@@ -97,4 +97,5 @@ export interface OrderType {
   paymentStatus: PaymentStatus;
   paymentId?: string;
   receiptUrl?: string;
+  createdAt: Date;
 }
