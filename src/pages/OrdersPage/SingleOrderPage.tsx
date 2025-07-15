@@ -178,7 +178,7 @@ const SingleOrderPage = () => {
           </Col>
           <Col xs={24} sm={24} md={8}>
             {/* // Select Box */}
-            <OrderStatusSelector orderValue={orders.orderStatus}/>
+            <OrderStatusSelector orderId={orders._id as string} orderValue={orders.orderStatus}/>
           
           </Col>
         </Row>

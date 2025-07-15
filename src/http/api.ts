@@ -1,4 +1,5 @@
 import { Credentials, Promo, Restaurant, User } from "../types";
+import { OrderStatus } from "../types/order";
 import api from "./client";
 
 const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL;
@@ -88,4 +89,7 @@ export const  getOrders = (queryParams:string)=>
 
 export const  getSingleOrder = (orderId:string,queryParams:string)=>
   api.get(`${ORDER_SERVICE_URL}/api/order/${orderId}?${queryParams}`)
+
+export const  updateOrderStatus = (orderId:string,queryParams:string,status:{status:OrderStatus})=>
+  api.patch(`${ORDER_SERVICE_URL}/api/order/change-status/${orderId}?${queryParams}`,status);
 
