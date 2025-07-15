@@ -23,8 +23,6 @@ import {
   Typography,
   Descriptions,
   Badge,
-  Statistic,
-  Select,
 } from "antd";
 import { NavLink, useParams } from "react-router-dom";
 import { getSingleOrder } from "../../http/api";
@@ -32,6 +30,7 @@ import { orderStatusTagColor } from "../../constants";
 import { OrderStatus, OrderType, PaymentMode, PaymentStatus } from "../../types/order";
 import OnError from "../../components/custom/OnError";
 import Loader from "../../assets/Icons/common/Loader";
+import OrderStatusSelector from "./components/OrderStatusSelector";
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
@@ -179,20 +178,7 @@ const SingleOrderPage = () => {
           </Col>
           <Col xs={24} sm={24} md={8}>
             {/* // Select Box */}
-            <Space direction="vertical" size="small">
-                 <Text strong>Change Order Status</Text>
-                   <Select
-              defaultValue="lucy"
-              style={{ width: 220 }}
-              onChange={() => {}}
-              options={[
-                { value: "jack", label: "Jack" },
-                { value: "lucy", label: "Lucy" },
-                { value: "Yiminghe", label: "yiminghe" },
-                { value: "disabled", label: "Disabled", disabled: true },
-              ]}
-            />
-              </Space>
+            <OrderStatusSelector orderValue={orders.orderStatus}/>
           
           </Col>
         </Row>
