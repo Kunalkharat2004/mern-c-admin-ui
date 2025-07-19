@@ -3,14 +3,16 @@ import { OrderType } from "../../types/order";
 import { Breadcrumb, Form, Grid, Space, Table, Tag, Typography } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { RightOutlined } from "@ant-design/icons";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { getOrders } from "../../http/api";
 import OrdersFilter from "./OrdersFilter";
 import { FieldData } from "../../types";
 import { orderStatusTagColor } from "../../constants";
 import OnError from "../../components/custom/OnError";
 import Loader from "../../assets/Icons/common/Loader";
+import socket from "../../lib/socket";
+import { useAuthStore } from "../../store";
 
 const { useBreakpoint } = Grid;
 
@@ -164,12 +166,36 @@ const getColumns = (screens: Record<string, boolean>) => [
 
 
 const OrdersPage = () => {
-  const screens = useBreakpoint();
-  const [formfilter] = Form.useForm();
-  const [queryParams, setQueryParams] = useState({
+
+  const {user} = useAuthStore();
+  const queryClient = useQueryClient();
+
+    const [queryParams, setQueryParams] = useState({
     page: 1,
     limit: 10,
   });
+
+  useEffect(()=>{
+    if(user?.tenant){
+      socket.emit("join",{tenantId: user?.tenant?.id})
+      socket.on("order-update",(data)=>{
+        queryClient.setQueryData(["orders",queryParams],(old:OrderType[])=> [data.data,...old])
+        console.log("data received: ",data.data);
+      })
+
+       socket.on("client-joined",(data)=>{
+      console.log("Client joined to room: ",data.roomId);
+    })
+    }
+
+    return ()=>{
+      socket.off("client-joined")
+    }
+  },[queryClient,queryParams,user?.tenant])
+
+  const screens = useBreakpoint();
+  const [formfilter] = Form.useForm();
+
 const getAllOrders = async () => {
     const filteredValues = Object.fromEntries(
       Object.entries(queryParams).filter((item) => !!item[1])
@@ -189,7 +215,6 @@ const getAllOrders = async () => {
     queryKey: ["orders", queryParams],
     queryFn: getAllOrders,
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const handleFilterChange = (changedFields: FieldData[]) => {
