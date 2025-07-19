@@ -61,7 +61,7 @@ const SingleOrderPage = () => {
     queryFn: async () => {
       const queryfields = {
         fields:
-          "cart,address,total,comment,orderStatus,paymentMode,paymentStatus,createdAt,customerId,customer",
+          "cart,address,total,comment,orderStatus,paymentMode,paymentStatus,createdAt,customerId,customer,tenantId",
       };
       const queryParamasString = new URLSearchParams(queryfields).toString();
       return await getSingleOrder(orderId as string, queryParamasString).then(

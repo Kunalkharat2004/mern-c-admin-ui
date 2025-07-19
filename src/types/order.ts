@@ -99,3 +99,9 @@ export interface OrderType {
   receiptUrl?: string;
   createdAt: Date;
 }
+
+export enum OrderEvents {
+  ORDER_CREATED = "ORDER_CREATED",
+  ORDER_UPDATED = "ORDER_UPDATED",
+  PAYMENT_STATUS_UPDATE = "PAYMENT_STATUS_UPDATE",
+}

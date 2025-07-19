@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { OrderType } from "../../types/order";
+import { OrderEvents, OrderType, PaymentMode, PaymentStatus } from "../../types/order";
 import { Breadcrumb, Form, Grid, Space, Table, Tag, Typography } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { RightOutlined } from "@ant-design/icons";
@@ -49,20 +49,20 @@ const getColumns = (screens: Record<string, boolean>) => [
       );
     },
   },
-  {
-    title: "Customer",
-    dataIndex: ["customer", "0", "firstName"],
-    key: "customer",
-    width: screens.xs ? 180 : "10%",   // Moderate width
-    ellipsis: true,
-    render: (_text: string, record: OrderType) => {
-      const cust = record.customer[0];
-      const fullName = cust
-        ? `${cust.firstName.charAt(0).toUpperCase()}${cust.firstName.slice(1)} ${cust.lastName.charAt(0).toUpperCase()}${cust.lastName.slice(1)}`
-        : "—";
-      return <Typography.Text>{fullName}</Typography.Text>;
-    },
-  },
+  // {
+  //   title: "Customer",
+  //   dataIndex: ["customer", "0", "firstName"],
+  //   key: "customer",
+  //   width: screens.xs ? 180 : "10%",   // Moderate width
+  //   ellipsis: true,
+  //   render: (_text: string, record: OrderType) => {
+  //     const cust = record.customer[0];
+  //     const fullName = cust
+  //       ? `${cust.firstName.charAt(0).toUpperCase()}${cust.firstName.slice(1)} ${cust.lastName.charAt(0).toUpperCase()}${cust.lastName.slice(1)}`
+  //       : "—";
+  //     return <Typography.Text>{fullName}</Typography.Text>;
+  //   },
+  // },
   {
     title: "Address",
     dataIndex: "address",
@@ -175,23 +175,72 @@ const OrdersPage = () => {
     limit: 10,
   });
 
-  useEffect(()=>{
-    if(user?.tenant){
-      socket.emit("join",{tenantId: user?.tenant?.id})
-      socket.on("order-update",(data)=>{
-        queryClient.setQueryData(["orders",queryParams],(old:OrderType[])=> [data.data,...old])
-        console.log("data received: ",data.data);
-      })
+useEffect(() => {
+  if (user?.tenant) {
+    socket.emit("join", { tenantId: user?.tenant?.id });
+    
+    socket.on("order-update", (socketData) => {
+      console.log("data received: ", socketData);
+      
+      // Extract the actual order data from the socket response
+      const newOrder = socketData.data;
+      
+      // Define conditions for when to add order to the list
+      const shouldAddOrder = 
+        // Case 1: COD orders - add immediately when created
+        (socketData.event_type === OrderEvents.ORDER_CREATED && 
+         socketData.data.paymentMode === PaymentMode.CASH) ||
+        
+        // Case 2: Card orders - only add when payment is completed
+        (socketData.event_type === OrderEvents.ORDER_CREATED && 
+         socketData.data.paymentMode === PaymentMode.CARD && 
+         socketData.data.paymentStatus === PaymentStatus.PAID) ||
+         
+        // Case 3: Payment status updates for card orders - add when payment becomes paid
+        (socketData.event_type === OrderEvents.PAYMENT_STATUS_UPDATE && 
+         socketData.data.paymentMode === PaymentMode.CARD && 
+         socketData.data.paymentStatus === PaymentStatus.PAID);
+      
+      if (shouldAddOrder) {
+        queryClient.setQueryData(["orders", queryParams], (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          // Check if order already exists to prevent duplicates
+          const orderExists = oldData.data.some((order: OrderType) => order._id === newOrder._id);
+          
+          if (!orderExists) {
+            // Add the new order to the beginning of the existing data array
+            return {
+              ...oldData,
+              data: [newOrder, ...oldData.data],
+            };
+          }
+          
+          // If it's a payment status update, update the existing order
+          if (socketData.event_type === OrderEvents.PAYMENT_STATUS_UPDATE) {
+            return {
+              ...oldData,
+              data: oldData.data.map((order: OrderType) => 
+                order._id === newOrder._id ? newOrder : order
+              ),
+            };
+          }
+          
+          return oldData; // No changes if order already exists
+        });
+      }
+    });
 
-       socket.on("client-joined",(data)=>{
-      console.log("Client joined to room: ",data.roomId);
-    })
-    }
+    socket.on("client-joined", (data) => {
+      console.log("Client joined to room: ", data.roomId);
+    });
+  }
 
-    return ()=>{
-      socket.off("client-joined")
-    }
-  },[queryClient,queryParams,user?.tenant])
+  return () => {
+    socket.off("order-update");
+    socket.off("client-joined");
+  };
+}, [queryClient, queryParams, user?.tenant]);
 
   const screens = useBreakpoint();
   const [formfilter] = Form.useForm();
@@ -289,7 +338,7 @@ const getAllOrders = async () => {
             pagination={{
               current: queryParams.page,
               pageSize: queryParams.limit,
-              total: orders?.data.total,
+              total: orders?.total,
               onChange: (page) => {
                 setQueryParams((prev) => {
                   return {
