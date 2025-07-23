@@ -83,8 +83,8 @@ export interface Customer {
 export interface OrderType {
   _id?: string;
   cart: CartItems[];
-  customerId: string;
-  customer: Customer[];
+  customerId: Customer;
+  customer?: Customer;
   total: number;
   discount: number;
   taxes: number;
