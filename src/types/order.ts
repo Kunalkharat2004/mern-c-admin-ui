@@ -71,6 +71,7 @@ export enum PaymentStatus {
 }
 
 export interface Customer {
+  _id?: string;
   userId: string;
   firstName: string;
   lastName: string;

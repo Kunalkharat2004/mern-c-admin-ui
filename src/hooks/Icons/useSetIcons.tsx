@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Icon from "@ant-design/icons";
 
 // This hook returns a render function that creates an overlay of two icons.
@@ -14,9 +15,13 @@ const useOverlayIcons = () => {
    * @returns {JSX.Element}
    */
   const renderOverlayIcons = (
-    BackgroundIcon,
-    OverlayIcon,
-    options = {}
+    BackgroundIcon: React.ComponentType<any>,
+    OverlayIcon: React.ComponentType<any>,
+    options: {
+      backgroundProps?: object;
+      overlayProps?: object;
+      overlayStyle?: React.CSSProperties;
+    } = {}
   ) => {
     const { backgroundProps = {}, overlayProps = {}, overlayStyle = {} } = options;
 
