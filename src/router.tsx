@@ -10,6 +10,7 @@ import ProductsPage from "./pages/ProductsPage/ProductsPage";
 import PromosPage from "./pages/PromosPage/PromosPage";
 import OrdersPage from "./pages/OrdersPage/OrdersPage";
 import SingleOrderPage from "./pages/OrdersPage/SingleOrderPage";
+import ToppingsPage from "./pages/ToppingsPage/ToppingsPage";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
           {
             path: "products",
             element: <ProductsPage />,
+          },
+          {
+            path: "toppings",
+            element: <ToppingsPage />,
           },
           {
             path: "promos",

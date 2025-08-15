@@ -34,6 +34,7 @@ import {
   MdPeople,
   MdOutlineShoppingBasket,
 } from "react-icons/md";
+import { LuPyramid } from "react-icons/lu";
 
 const { Header, Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -122,6 +123,20 @@ const DashboardLayout = () => {
       ),
     },
     {
+      key: "/toppings",
+      icon: (
+        <LuPyramid 
+        size={22}
+          color={location.pathname === "/toppings" ? colorPrimary : "#838181"}
+        />
+      ),
+      label: (
+        <NavLink to="/toppings" onClick={() => setMobileMenuOpen(false)}>
+          Toppings
+        </NavLink>
+      ),
+    },
+    {
       key: "/orders",
       icon: (
         <MdShoppingCart
@@ -132,20 +147,6 @@ const DashboardLayout = () => {
       label: (
         <NavLink to="/orders" onClick={() => setMobileMenuOpen(false)}>
           Orders
-        </NavLink>
-      ),
-    },
-    {
-      key: "/sales",
-      icon: (
-        <MdAttachMoney
-          size={22}
-          color={location.pathname === "/sales" ? colorPrimary : "#838181"}
-        />
-      ),
-      label: (
-        <NavLink to="/sales" onClick={() => setMobileMenuOpen(false)}>
-          Sales
         </NavLink>
       ),
     },

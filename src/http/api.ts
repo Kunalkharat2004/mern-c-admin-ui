@@ -58,11 +58,28 @@ export const createProductApi = (productData: FormData) =>
     },
   });
 
+export const createToppingApi = (toppingData: FormData) =>
+  api.post(`${CATALOG_SERVICE_URL}/api/toppings`, toppingData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+export const getAllToppings = (queryParamsString: string) =>
+  api.get(`${CATALOG_SERVICE_URL}/api/toppings?${queryParamsString}`);
+
 export const getSingleCategory = (categoryId: string) =>
   api.get(`${CATALOG_SERVICE_URL}/api/categories/${categoryId}`);
 
 export const updateProductApi = (productData: FormData, id: string) =>
   api.put(`${CATALOG_SERVICE_URL}/api/products/${id}`, productData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+export const updateToppingApi = (toppingData: FormData, id: string) =>
+  api.patch(`${CATALOG_SERVICE_URL}/api/toppings/${id}`, toppingData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -75,6 +92,9 @@ export const getAllPromos = (queryParamasString: string) =>
 export const deleteProduct = (id: string) =>
   api.delete(`${CATALOG_SERVICE_URL}/api/products/${id}`);
 
+export const deleteTopping = (id: string) =>
+  api.delete(`${CATALOG_SERVICE_URL}/api/toppings/${id}`);
+
 export const deletePromo = (id: string) =>
   api.delete(`${ORDER_SERVICE_URL}/api/coupon/${id}`);
 
@@ -86,6 +106,9 @@ export const updatePromo = (promoData: Promo, id: string) =>
 
 export const  getOrders = (queryParams:string)=>
   api.get(`${ORDER_SERVICE_URL}/api/order?${queryParams}`)
+
+export const  getOrdersForDashBoard = (queryParams:string)=>
+  api.get(`${ORDER_SERVICE_URL}/api/order/dashboard?${queryParams}`)
 
 export const  getSingleOrder = (orderId:string,queryParams:string)=>
   api.get(`${ORDER_SERVICE_URL}/api/order/${orderId}?${queryParams}`)
