@@ -29,7 +29,6 @@ import {
   MdHome,
   MdRestaurant,
   MdShoppingCart,
-  MdAttachMoney,
   MdLocalOffer,
   MdPeople,
   MdOutlineShoppingBasket,
