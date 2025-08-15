@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Card,
   Col,
@@ -16,7 +17,6 @@ import {
 } from "antd";
 import { useAuthStore } from "../../store";
 import useOverlayIcons from "../../hooks/Icons/useSetIcons";
-import SalesIcon from "../../assets/Icons/Sidebar/SalesIcon";
 import RecentOrdersComp from "./components/RecentOrdersComp";
 import { NavLink } from "react-router-dom";
 import OrdersRectangle from "./Icons/OrdersRectangle";
@@ -98,10 +98,10 @@ const HomePage = () => {
   const filteredData = useMemo(() => {
     const monthlySalesData = orders?.monthlySalesData || [];
     if (!monthlySalesData) return [];
-    return monthlySalesData.filter((item) => item.year === selectedYear);
+    return monthlySalesData.filter((item:any) => item.year === selectedYear);
   }, [selectedYear, orders?.monthlySalesData]); // Dependency: re-filter only when selectedYear or monthlySalesData changes
 
-  const handleYearChange = (date) => {
+  const handleYearChange = (date:any) => {
     if (date) {
       setSelectedYear(date.year());
     }
@@ -224,7 +224,7 @@ const HomePage = () => {
                       paddingAngle={4}
                       label
                     >
-                      {orders?.orderStatusCounts.map((_, index) => (
+                      {orders?.orderStatusCounts.map((_:any, index:number) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
