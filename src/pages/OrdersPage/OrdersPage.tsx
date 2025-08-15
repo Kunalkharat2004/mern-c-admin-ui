@@ -192,6 +192,11 @@ const OrdersPage = () => {
 
   useEffect(() => {
     if (user?.tenant) {
+
+         socket.on("client-joined", (data) => {
+        console.log("Client joined to room: ", data.roomId);
+      });
+      
       socket.emit("join", { tenantId: user?.tenant?.id });
 
       socket.on("order-update", (socketData) => {
@@ -249,9 +254,7 @@ const OrdersPage = () => {
         }
       });
 
-      socket.on("client-joined", (data) => {
-        console.log("Client joined to room: ", data.roomId);
-      });
+   
     }
 
     return () => {

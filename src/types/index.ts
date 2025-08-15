@@ -68,11 +68,31 @@ export interface Products {
     attributeConfiguration: Array<IAttributeConfigurationValue>;
 }
 
+export interface Toppings {
+    _id?: string,
+    name: string;
+    image: string;
+    price: number;
+    category: ICategory;
+    tenantId: string;
+    isPublished?: boolean;
+}
+
+export interface ToppingFilters {
+    q?: string;
+    tenantId?: string;
+    isPublished?: boolean;
+}
+
 export interface CreateProduct extends Omit<Products, 'image'> { 
     image: {file: File};
 }
 
 export interface CreateProductResponse {
+    msg: string;
+    _id: string;
+}
+export interface CreateToppingResponse {
     msg: string;
     _id: string;
 }
