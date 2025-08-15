@@ -49,23 +49,7 @@ const HomePage = () => {
   const renderOverlayIcons = useOverlayIcons();
   const screens = useBreakpoint();
 
-  // Mock analytics data (UI-only)
-  const monthlySalesData = [
-    { month: "Jan", revenue: 32000, orders: 420 },
-    { month: "Feb", revenue: 36000, orders: 460 },
-    { month: "Mar", revenue: 41000, orders: 510 },
-    { month: "Apr", revenue: 38000, orders: 480 },
-    { month: "May", revenue: 44000, orders: 560 },
-    { month: "Jun", revenue: 47000, orders: 590 },
-    { month: "Jul", revenue: 52000, orders: 640 },
-    { month: "Aug", revenue: 54000, orders: 670 },
-    { month: "Sep", revenue: 50000, orders: 610 },
-    { month: "Oct", revenue: 56000, orders: 690 },
-    { month: "Nov", revenue: 59000, orders: 730 },
-    { month: "Dec", revenue: 62000, orders: 760 },
-  ];
-
-  const COLORS = ["#1677ff","#52c41a", "#efde28ff", "#a421f0ff", "#ef730dff"];
+  const COLORS = ["#1677ff", "#52c41a", "#efde28ff", "#a421f0ff", "#ef730dff"];
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -77,11 +61,11 @@ const HomePage = () => {
       return "Good Night";
     }
   };
-  
+
   const queryParams = {
     page: 1,
-    limit:4
-  }
+    limit: 4,
+  };
   const getAllOrders = async () => {
     const filteredValues = Object.fromEntries(
       Object.entries(queryParams).filter((item) => !!item[1])
@@ -218,10 +202,11 @@ const HomePage = () => {
                 </ResponsiveContainer>
               </Card>
             </Col>
-              {
-                isPending ? <RecentOrdersSkeleton/> :(
-                  <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-                  <Card
+            {isPending ? (
+              <RecentOrdersSkeleton />
+            ) : (
+              <Col xs={24} sm={24} md={24} lg={12} xl={12}>
+                <Card
                   style={{
                     height: "auto",
                     marginLeft: screens.lg ? "16px" : "0",
@@ -263,10 +248,8 @@ const HomePage = () => {
                     </div>
                   </Flex>
                 </Card>
-            </Col>
-                )
-              }
-             
+              </Col>
+            )}
           </Row>
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             <Card
@@ -287,7 +270,7 @@ const HomePage = () => {
               />
               <ResponsiveContainer width="100%" height={screens.xs ? 220 : 300}>
                 <AreaChart
-                  data={monthlySalesData}
+                  data={orders?.monthlySalesData || []}
                   margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
                 >
                   <defs>
@@ -306,6 +289,7 @@ const HomePage = () => {
                       />
                     </linearGradient>
                   </defs>
+
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
                   <YAxis
@@ -313,8 +297,23 @@ const HomePage = () => {
                     axisLine={false}
                     tickFormatter={(v) => `₹${v / 1000}k`}
                   />
-                  <Tooltip formatter={(val) => [`₹${val}`, "Revenue"]} />
+
+                  {/* ✅ Dynamic tooltip per series */}
+                  <Tooltip
+                    formatter={(value, name) => {
+                      if (name === "Revenue") {
+                        return [`₹${value}`, "Revenue"];
+                      }
+                      if (name === "Orders") {
+                        return [value, "Orders"]; // No ₹ sign here
+                      }
+                      return value;
+                    }}
+                  />
+
                   <Legend verticalAlign="top" height={24} />
+
+                  {/* Revenue as Area */}
                   <Area
                     type="monotone"
                     dataKey="revenue"
@@ -323,6 +322,8 @@ const HomePage = () => {
                     fillOpacity={1}
                     fill="url(#revenueGradient)"
                   />
+
+                  {/* Orders as Line */}
                   <Line
                     type="monotone"
                     dataKey="orders"
@@ -330,6 +331,7 @@ const HomePage = () => {
                     stroke="#52c41a"
                     strokeWidth={2}
                     dot={false}
+                    yAxisId="orders" // optional: separate axis if orders scale is very different
                   />
                 </AreaChart>
               </ResponsiveContainer>
