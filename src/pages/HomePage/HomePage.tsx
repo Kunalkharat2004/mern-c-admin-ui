@@ -11,6 +11,8 @@ import {
   Grid,
   Tag,
   DatePicker,
+  Result,
+  Button,
 } from "antd";
 import { useAuthStore } from "../../store";
 import useOverlayIcons from "../../hooks/Icons/useSetIcons";
@@ -104,6 +106,21 @@ const HomePage = () => {
       setSelectedYear(date.year());
     }
   };
+
+    if (isError) {
+      return (
+        <Result
+          status="500"
+          title="Something went wrong"
+          subTitle="Sorry, we encountered an error while fetching the data."
+          extra={[
+            <Button type="primary" key="retry" onClick={() => refetch()}>
+              Retry
+            </Button>,
+          ]}
+        />
+      );
+    }
 
   return (
     <>
