@@ -14,6 +14,7 @@ import {
   DatePicker,
   Result,
   Button,
+  Form,
 } from "antd";
 import { useAuthStore } from "../../store";
 import useOverlayIcons from "../../hooks/Icons/useSetIcons";
@@ -45,12 +46,16 @@ import { OrderType } from "../../types/order";
 import RecentOrdersSkeleton from "./components/RecentOrderSkeleton";
 import { useMemo, useState } from "react";
 import dayjs from "dayjs";
+import RestaurantFilter from "./components/RestaurantFilter";
+import { FieldData } from "../../types";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
 const HomePage = () => {
+
   const { user } = useAuthStore();
+  const [formfilter] = Form.useForm();
   const renderOverlayIcons = useOverlayIcons();
   const screens = useBreakpoint();
 
@@ -67,10 +72,11 @@ const HomePage = () => {
     }
   };
 
-  const queryParams = {
-    page: 1,
-    limit: 4,
-  };
+   const [queryParams, setQueryParams] = useState({
+    page:1,
+    limit:4,
+    tenantId: user?.role === "manager" ? user.tenant?.id : undefined,
+  });
   const getAllOrders = async () => {
     const filteredValues = Object.fromEntries(
       Object.entries(queryParams).filter((item) => !!item[1])
@@ -81,6 +87,7 @@ const HomePage = () => {
     const { data } = await getOrdersForDashBoard(queryParamasString);
     return data;
   };
+
   const {
     data: orders,
     isPending,
@@ -91,6 +98,7 @@ const HomePage = () => {
     queryFn: getAllOrders,
     placeholderData: keepPreviousData,
   });
+
 // 1. State to hold the selected year, defaulting to the current year
   const [selectedYear, setSelectedYear] = useState(dayjs().year());
 
@@ -106,6 +114,29 @@ const HomePage = () => {
       setSelectedYear(date.year());
     }
   };
+
+    const handleFilterChange = (changedFields: FieldData[]) => {
+      // {
+      // q: "Jalapeno",
+      // isPublished: true
+      // }
+      console.log("Changed fields: ", changedFields);
+  
+      const filter = changedFields
+        .map((item) => ({
+          [item.name[0]]: item.value,
+        }))
+        .reduce((acc, curr) => {
+          return { ...acc, ...curr };
+        }, {});
+
+        setQueryParams((prev) => ({
+          ...prev,
+          ...filter,
+          page: 1,
+        }));
+      
+    };
 
     if (isError) {
       return (
@@ -129,17 +160,30 @@ const HomePage = () => {
           height: "100%",
         }}
       >
+        <Row justify="space-between" align="top" style={{ marginBottom: 16 }}>
+      <Col>
         <Title
           style={{
-            marginBottom: screens.xs ? 20 : 40,
+            // Remove bottom margin to help with vertical alignment
+            marginBottom: 0,
             fontSize: screens.xs ? "1.5rem" : undefined,
           }}
           level={screens.xs ? 4 : 3}
         >
           {getGreeting()}
-          <br />
+            {" "}
           {user?.firstName} 😊
         </Title>
+      </Col>
+      <Col>
+        {user?.role === "admin" && (
+         <Form form={formfilter} onFieldsChange={handleFilterChange}>
+          <RestaurantFilter />
+         </Form>
+        )}
+      </Col>
+    </Row>
+
         <Layout
           style={{
             height: "100%",
