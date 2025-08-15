@@ -10,6 +10,7 @@ import {
   Typography,
   Grid,
   Tag,
+  DatePicker,
 } from "antd";
 import { useAuthStore } from "../../store";
 import useOverlayIcons from "../../hooks/Icons/useSetIcons";
@@ -40,6 +41,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getOrdersForDashBoard } from "../../http/api";
 import { OrderType } from "../../types/order";
 import RecentOrdersSkeleton from "./components/RecentOrderSkeleton";
+import { useMemo, useState } from "react";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -86,6 +89,21 @@ const HomePage = () => {
     queryFn: getAllOrders,
     placeholderData: keepPreviousData,
   });
+// 1. State to hold the selected year, defaulting to the current year
+  const [selectedYear, setSelectedYear] = useState(dayjs().year());
+
+  // 2. Memoize the filtered data to prevent re-calculation on every render
+  const filteredData = useMemo(() => {
+    const monthlySalesData = orders?.monthlySalesData || [];
+    if (!monthlySalesData) return [];
+    return monthlySalesData.filter((item) => item.year === selectedYear);
+  }, [selectedYear, orders?.monthlySalesData]); // Dependency: re-filter only when selectedYear or monthlySalesData changes
+
+  const handleYearChange = (date) => {
+    if (date) {
+      setSelectedYear(date.year());
+    }
+  };
 
   return (
     <>
@@ -252,90 +270,89 @@ const HomePage = () => {
             )}
           </Row>
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            <Card
-              style={{
-                marginTop: "16px",
-                width: "100%",
-                height: "auto",
-              }}
-            >
-              <Space align="center">
-                <SalesIcon />
-                <Title level={screens.xs ? 5 : 4}>Sales</Title>
-              </Space>
-              <Divider
-                style={{
-                  marginTop: 0,
-                }}
-              />
-              <ResponsiveContainer width="100%" height={screens.xs ? 220 : 300}>
-                <AreaChart
-                  data={orders?.monthlySalesData || []}
-                  margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="revenueGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#1677ff" stopOpacity={0.7} />
-                      <stop
-                        offset="95%"
-                        stopColor="#1677ff"
-                        stopOpacity={0.05}
-                      />
-                    </linearGradient>
-                  </defs>
+           <Card
+      style={{
+        marginTop: "16px",
+        width: "100%",
+        height: "auto",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Space align="center">
+          {/* <SalesIcon /> */}
+          <Title level={screens.xs ? 5 : 4} style={{ margin: 0 }}>Sales</Title>
+        </Space>
 
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `₹${v / 1000}k`}
-                  />
+        {/* 3. Add the Year Picker component */}
+        <DatePicker
+          picker="year"
+          onChange={handleYearChange}
+          defaultValue={dayjs()} // Set the default display value
+          allowClear={false}
+        />
+      </div>
 
-                  {/* ✅ Dynamic tooltip per series */}
-                  <Tooltip
-                    formatter={(value, name) => {
-                      if (name === "Revenue") {
-                        return [`₹${value}`, "Revenue"];
-                      }
-                      if (name === "Orders") {
-                        return [value, "Orders"]; // No ₹ sign here
-                      }
-                      return value;
-                    }}
-                  />
+      <Divider
+        style={{
+          marginTop: "12px",
+          marginBottom: "12px"
+        }}
+      />
+      <ResponsiveContainer width="100%" height={screens.xs ? 220 : 300}>
+        {/* 4. Use the filtered data in the chart */}
+        <AreaChart
+          data={filteredData}
+          margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#1677ff" stopOpacity={0.7} />
+              <stop offset="95%" stopColor="#1677ff" stopOpacity={0.05} />
+            </linearGradient>
+          </defs>
 
-                  <Legend verticalAlign="top" height={24} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="month" tickLine={false} axisLine={false} />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(v) => `₹${v / 1000}k`}
+          />
 
-                  {/* Revenue as Area */}
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    name="Revenue"
-                    stroke="#1677ff"
-                    fillOpacity={1}
-                    fill="url(#revenueGradient)"
-                  />
+          <Tooltip
+            formatter={(value, name) => {
+              if (name === "Revenue") {
+                return [`₹${value.toLocaleString()}`, "Revenue"];
+              }
+              if (name === "Orders") {
+                return [value, "Orders"];
+              }
+              return value;
+            }}
+          />
 
-                  {/* Orders as Line */}
-                  <Line
-                    type="monotone"
-                    dataKey="orders"
-                    name="Orders"
-                    stroke="#52c41a"
-                    strokeWidth={2}
-                    dot={false}
-                    yAxisId="orders" // optional: separate axis if orders scale is very different
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Card>
+          <Legend verticalAlign="top" height={36} />
+
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            name="Revenue"
+            stroke="#1677ff"
+            fillOpacity={1}
+            fill="url(#revenueGradient)"
+          />
+
+          <Line
+            type="monotone"
+            dataKey="orders"
+            name="Orders"
+            stroke="#52c41a"
+            strokeWidth={2}
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </Card>
           </Row>
         </Layout>
       </Layout>
